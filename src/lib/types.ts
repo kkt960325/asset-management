@@ -3,7 +3,8 @@ export type AssetCategory =
   | "금현물"
   | "ISA-ETF"
   | "주택청약"
-  | "IRP";
+  | "IRP"
+  | "Crypto";
 
 export interface Asset {
   id: string;

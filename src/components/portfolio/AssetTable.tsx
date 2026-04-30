@@ -14,6 +14,11 @@ const CAT: Record<AssetCategory, { border: string; badge: string; text: string }
     badge: "bg-sky-500/10 text-sky-400 border-sky-500/20",
     text: "text-sky-400",
   },
+  "Crypto": {
+    border: "border-l-orange-400",
+    badge: "bg-orange-500/10 text-orange-400 border-orange-500/20",
+    text: "text-orange-400",
+  },
   "금현물": {
     border: "border-l-amber-400",
     badge: "bg-amber-500/10 text-amber-400 border-amber-500/20",
@@ -54,6 +59,8 @@ function fmtValue(value: number | undefined, currency: string | undefined): stri
 function fmtShares(shares: number, category: AssetCategory): string {
   if (category === "주택청약" || category === "IRP")
     return "₩" + Math.round(shares).toLocaleString("ko-KR");
+  if (category === "Crypto")
+    return shares.toLocaleString("en-US", { minimumFractionDigits: 0, maximumFractionDigits: 8 });
   return shares.toLocaleString("en-US");
 }
 
@@ -76,8 +83,12 @@ function statusBadge(
   if (result.targetWeight === 0)
     return { label: "미설정", cls: "text-[#8392b0] bg-[#1a2540]" };
   const abs = Math.abs(result.deviationPct);
-  if (result.needsRebalancing)
-    return { label: "리밸런싱", cls: "text-rose-400 bg-rose-500/10 border border-rose-500/20" };
+  if (result.needsRebalancing) {
+    const isBuy = result.rebalanceAmount > 0;
+    return isBuy
+      ? { label: "매수 필요", cls: "text-emerald-400 bg-emerald-500/10 border border-emerald-500/20" }
+      : { label: "매도 필요", cls: "text-rose-400 bg-rose-500/10 border border-rose-500/20" };
+  }
   if (abs > threshold * 0.5)
     return { label: "주의", cls: "text-amber-400 bg-amber-500/10 border border-amber-500/20" };
   return { label: "정상", cls: "text-emerald-400 bg-emerald-500/10 border border-emerald-500/20" };
@@ -131,7 +142,7 @@ export default function AssetTable() {
   }
 
   // 카테고리 순서로 정렬
-  const ORDER: AssetCategory[] = ["미국주식", "금현물", "ISA-ETF", "주택청약", "IRP"];
+  const ORDER: AssetCategory[] = ["미국주식", "Crypto", "금현물", "ISA-ETF", "주택청약", "IRP"];
   const sorted = [...assets].sort(
     (a, b) => ORDER.indexOf(a.category) - ORDER.indexOf(b.category)
   );

@@ -4,7 +4,7 @@ import { useState } from "react";
 import { useAssetStore, selectTotalTargetRatio } from "@/lib/store";
 import type { AssetCategory } from "@/lib/types";
 
-const CATEGORIES: AssetCategory[] = ["미국주식", "금현물", "ISA-ETF", "주택청약", "IRP"];
+const CATEGORIES: AssetCategory[] = ["미국주식", "Crypto", "금현물", "ISA-ETF", "주택청약", "IRP"];
 
 const INITIAL = {
   ticker: "",

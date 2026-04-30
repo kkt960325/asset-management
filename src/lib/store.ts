@@ -146,7 +146,21 @@ export const useAssetStore = create<AssetStore>()(
           return { valueHistory: [...state.valueHistory, next].slice(-200) };
         }),
 
-      clearHistory: () => set({ valueHistory: [] }),
+      clearHistory: () =>
+        set((state) => {
+          const totalKrw = state.assets
+            .filter((a) => a.currency === "KRW")
+            .reduce((s, a) => s + (a.currentValue ?? 0), 0);
+          const totalUsd = state.assets
+            .filter((a) => a.currency === "USD")
+            .reduce((s, a) => s + (a.currentValue ?? 0), 0);
+
+          if (totalKrw === 0 && totalUsd === 0) return { valueHistory: [] };
+
+          // 초기화 즉시 현재 정확한 총액을 첫 포인트로 기록
+          const seed: ValueSnapshot = { ts: Date.now(), totalKrw, totalUsd };
+          return { valueHistory: [seed] };
+        }),
     }),
     {
       name: "asset-management-store",

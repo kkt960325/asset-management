@@ -36,6 +36,8 @@ export type PricesApiResponse = {
 };
 
 // ── Yahoo Finance 단일 종목 조회 ──────────────────────────────────────────────
+// 미국주식(AAPL, COPX…), 가상자산(BTC-USD, ETH-USD, SOL-USD…), 환율(USDKRW=X),
+// 금선물(GC=F) 모두 이 함수 하나로 처리됨. 가상자산은 currency:"USD"로 자동 반환.
 async function fetchYahoo(
   ticker: string
 ): Promise<{ ticker: string; price: number | null; currency: string }> {
