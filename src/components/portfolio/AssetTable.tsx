@@ -200,8 +200,6 @@ export default function AssetTable() {
                 : { text: "text-[#3a4a6a]", bg: "" };
               const status = result && hasPriceData
                 ? statusBadge(result, thresholdPct)
-                : asset.currentValue === undefined
-                ? { label: "시세없음", cls: "text-[#3a4a6a] bg-[#0c1121] border border-[#1a2540]" }
                 : { label: "—", cls: "text-[#3a4a6a]" };
 
               return (
@@ -273,7 +271,7 @@ export default function AssetTable() {
 
                   {/* 평가금액 */}
                   <td className="px-4 py-3.5 text-right">
-                    {asset.currentValue && asset.currentValue > 0 ? (
+                    {asset.currentValue !== undefined && asset.currentValue > 0 ? (
                       <div className="flex flex-col items-end gap-0.5">
                         <span className="font-mono text-xs text-[#e2e8f8]">
                           {fmtValue(asset.currentValue, asset.currency)}
@@ -285,7 +283,13 @@ export default function AssetTable() {
                         </span>
                       </div>
                     ) : (
-                      <span className="font-mono text-xs text-[#3a4a6a]">—</span>
+                      <span className="font-mono text-xs text-[#3a4a6a]">
+                        {asset.category === "미국주식" || asset.category === "Crypto"
+                          ? "$0.00"
+                          : asset.category === "금현물" || asset.category === "ISA-ETF"
+                          ? "₩0"
+                          : "—"}
+                      </span>
                     )}
                   </td>
 

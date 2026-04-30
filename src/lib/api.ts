@@ -66,7 +66,13 @@ export async function fetchAssetPrices(marketAssets: AssetForPrice[]): Promise<{
     ])
   );
 
-  return { priceMap, exchangeRate };
+  // 안전망: route.ts에서 이미 -USD를 제거하지만, 혹시 남아있는 키도 제거
+  const sanitized: Record<string, PriceData> = {};
+  for (const [k, v] of Object.entries(priceMap)) {
+    sanitized[k.endsWith("-USD") ? k.replace(/-USD$/, "") : k] = v;
+  }
+
+  return { priceMap: sanitized, exchangeRate };
 }
 
 /**

@@ -387,10 +387,18 @@ export async function GET(req: NextRequest) {
   }
 
   // 요청된 티커만 응답 (USDKRW=X 는 exchangeRate 필드로 별도 반환)
+  // Crypto 티커는 -USD 접미사를 제거해서 반환 (BTC-USD → BTC)
+  // → 프론트엔드 ticker("BTC")와 키가 정확히 일치하도록 보장
   const prices: Record<string, { price: number; currency: string }> = {};
   for (const ticker of tickers) {
-    if (rawPrices[ticker]) prices[ticker] = rawPrices[ticker];
+    if (!rawPrices[ticker]) continue;
+    const outKey =
+      ticker.endsWith("-USD") && ticker !== USDKRW_TICKER
+        ? ticker.replace(/-USD$/, "")
+        : ticker;
+    prices[outKey] = rawPrices[ticker];
   }
 
+  console.log(`[prices] 최종 응답 keys: [${Object.keys(prices).join(", ")}]`);
   return NextResponse.json<PricesApiResponse>({ prices, exchangeRate });
 }

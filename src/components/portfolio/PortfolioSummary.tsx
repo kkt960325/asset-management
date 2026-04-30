@@ -103,12 +103,14 @@ export default function PortfolioSummary({ onRefresh, loading, error, lastUpdate
         {/* 통합 총액 KRW */}
         <StatCard
           label="전체 자산 총액 (KRW)"
-          value={hasAnyValue ? fmtKrw(totalKrwCombined) : "—"}
-          sub="전체 자산 통합 환산"
+          value={loading ? "조회 중…" : fmtKrw(totalKrwCombined)}
+          sub={loading ? "시세 갱신 중" : "전체 자산 통합 환산"}
           accent="sky"
           detail={
-            hasAnyValue
+            !loading && hasAnyValue
               ? `KRW ${fmtKrw(totalKrw)}  +  USD $${fmtUsdShort(totalUsd)} × ${Math.round(rate).toLocaleString("ko-KR")}`
+              : !loading && !hasAnyValue
+              ? "시세 갱신 후 표시됩니다"
               : undefined
           }
         />
@@ -116,12 +118,14 @@ export default function PortfolioSummary({ onRefresh, loading, error, lastUpdate
         {/* 통합 총액 USD */}
         <StatCard
           label="전체 자산 총액 (USD)"
-          value={hasAnyValue ? `$${fmtUsd(totalUsdCombined)}` : "—"}
-          sub="전체 자산 통합 환산"
+          value={loading ? "조회 중…" : `$${fmtUsd(totalUsdCombined)}`}
+          sub={loading ? "시세 갱신 중" : "전체 자산 통합 환산"}
           accent="sky"
           detail={
-            hasAnyValue
+            !loading && hasAnyValue
               ? `USD $${fmtUsdShort(totalUsd)}  +  KRW ${fmtKrw(totalKrw)} ÷ ${Math.round(rate).toLocaleString("ko-KR")}`
+              : !loading && !hasAnyValue
+              ? "시세 갱신 후 표시됩니다"
               : undefined
           }
         />

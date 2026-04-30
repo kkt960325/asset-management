@@ -110,7 +110,8 @@ export const useAssetStore = create<AssetStore>()(
       updatePrices: (prices) =>
         set((state) => {
           const updatedAssets = state.assets.map((a) => {
-            const data = prices[a.ticker];
+            // 1차: 정확한 티커 매칭 / 2차: "ticker-USD" 폴백 (Crypto 안전망)
+            const data = prices[a.ticker] ?? prices[`${a.ticker}-USD`];
             if (!data) return a;
             return {
               ...a,
