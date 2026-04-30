@@ -62,10 +62,13 @@ export const useAssetStore = create<AssetStore>()(
       setExchangeRate: (rate) => set({ exchangeRate: rate }),
 
       loadAssetsFromServer: (assets) =>
-        set((state) => ({
-          assets,
-          rebalanceAlert: calcRebalance(assets, state.thresholdPct, state.exchangeRate).needsRebalancing,
-        })),
+        set((state) => {
+          const safeAssets = Array.isArray(assets) ? assets : [];
+          return {
+            assets: safeAssets,
+            rebalanceAlert: calcRebalance(safeAssets, state.thresholdPct, state.exchangeRate).needsRebalancing,
+          };
+        }),
 
       addAsset: (input) =>
         set((state) => {
