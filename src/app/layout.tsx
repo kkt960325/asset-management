@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Manrope, JetBrains_Mono } from "next/font/google";
 import SessionProviderWrapper from "@/components/SessionProviderWrapper";
+import NavUser from "@/components/NavUser";
 import "./globals.css";
 
 const manrope = Manrope({ subsets: ["latin"], variable: "--font-sans", display: "swap" });
@@ -25,9 +26,12 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
                   ASSET_MGR
                 </span>
               </div>
-              <div className="flex items-center gap-8 text-xs font-medium tracking-wider text-[#8392b0] uppercase">
-                <a href="/" className="hover:text-sky-400 transition-colors">홈</a>
-                <a href="/portfolio" className="hover:text-sky-400 transition-colors">포트폴리오</a>
+              <div className="flex items-center gap-6">
+                <div className="flex items-center gap-8 text-xs font-medium tracking-wider text-[#8392b0] uppercase">
+                  <a href="/" className="hover:text-sky-400 transition-colors">홈</a>
+                  <a href="/portfolio" className="hover:text-sky-400 transition-colors">포트폴리오</a>
+                </div>
+                <NavUser />
               </div>
             </div>
           </nav>

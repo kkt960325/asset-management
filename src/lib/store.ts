@@ -3,12 +3,6 @@ import { persist } from "zustand/middleware";
 import type { Asset, AssetCategory, NewAssetInput, PriceData, ValueSnapshot } from "./types";
 import { calcRebalance, type RebalanceSummary } from "./rebalancer";
 
-// ── 초기 자산 데이터 ──────────────────────────────────────────────────────────
-
-const initialAssets: Asset[] = [
-
-];
-
 // ── 스토어 타입 ───────────────────────────────────────────────────────────────
 
 type AssetStore = {
@@ -21,6 +15,11 @@ type AssetStore = {
   /** 실시간 USD/KRW 환율 (시세 갱신 시 업데이트, 초기값은 폴백 환율) */
   exchangeRate: number;
   setExchangeRate: (rate: number) => void;
+
+  /** 서버에서 불러온 자산을 스토어에 적재 (mutationVersion 증가 없음) */
+  loadAssetsFromServer: (assets: Asset[]) => void;
+  /** 사용자 뮤테이션 카운터 — 서버 동기화 트리거용 */
+  mutationVersion: number;
 
   addAsset: (input: NewAssetInput) => void;
   updateShares: (id: string, shares: number) => void;
@@ -53,13 +52,20 @@ type AssetStore = {
 export const useAssetStore = create<AssetStore>()(
   persist(
     (set) => ({
-      assets: initialAssets,
+      assets: [],
       thresholdPct: 3,
       rebalanceAlert: false,
       exchangeRate: 1_400,
       valueHistory: [],
+      mutationVersion: 0,
 
       setExchangeRate: (rate) => set({ exchangeRate: rate }),
+
+      loadAssetsFromServer: (assets) =>
+        set((state) => ({
+          assets,
+          rebalanceAlert: calcRebalance(assets, state.thresholdPct, state.exchangeRate).needsRebalancing,
+        })),
 
       addAsset: (input) =>
         set((state) => {
@@ -78,6 +84,7 @@ export const useAssetStore = create<AssetStore>()(
           const updatedAssets = [...state.assets, newAsset];
           return {
             assets: updatedAssets,
+            mutationVersion: state.mutationVersion + 1,
             rebalanceAlert: calcRebalance(updatedAssets, state.thresholdPct, state.exchangeRate).needsRebalancing,
           };
         }),
@@ -87,6 +94,7 @@ export const useAssetStore = create<AssetStore>()(
           const updatedAssets = state.assets.map((a) => (a.id === id ? { ...a, shares } : a));
           return {
             assets: updatedAssets,
+            mutationVersion: state.mutationVersion + 1,
             rebalanceAlert: calcRebalance(updatedAssets, state.thresholdPct, state.exchangeRate).needsRebalancing,
           };
         }),
@@ -96,6 +104,7 @@ export const useAssetStore = create<AssetStore>()(
           const updatedAssets = state.assets.map((a) => (a.id === id ? { ...a, ...updates } : a));
           return {
             assets: updatedAssets,
+            mutationVersion: state.mutationVersion + 1,
             rebalanceAlert: calcRebalance(updatedAssets, state.thresholdPct, state.exchangeRate).needsRebalancing,
           };
         }),
@@ -105,6 +114,7 @@ export const useAssetStore = create<AssetStore>()(
           const updatedAssets = state.assets.filter((a) => a.id !== id);
           return {
             assets: updatedAssets,
+            mutationVersion: state.mutationVersion + 1,
             rebalanceAlert: calcRebalance(updatedAssets, state.thresholdPct, state.exchangeRate).needsRebalancing,
           };
         }),
@@ -116,6 +126,7 @@ export const useAssetStore = create<AssetStore>()(
           );
           return {
             assets: updatedAssets,
+            mutationVersion: state.mutationVersion + 1,
             rebalanceAlert: calcRebalance(updatedAssets, state.thresholdPct, state.exchangeRate).needsRebalancing,
           };
         }),
@@ -129,6 +140,7 @@ export const useAssetStore = create<AssetStore>()(
           );
           return {
             assets: updatedAssets,
+            mutationVersion: state.mutationVersion + 1,
             rebalanceAlert: calcRebalance(updatedAssets, state.thresholdPct, state.exchangeRate).needsRebalancing,
           };
         }),
@@ -186,14 +198,18 @@ export const useAssetStore = create<AssetStore>()(
 
           if (totalKrw === 0 && totalUsd === 0) return { valueHistory: [] };
 
-          // 초기화 즉시 현재 정확한 총액을 첫 포인트로 기록
           const seed: ValueSnapshot = { ts: Date.now(), totalKrw, totalUsd };
           return { valueHistory: [seed] };
         }),
     }),
     {
       name: "asset-management-store",
-      version: 4,
+      version: 5,
+      // assets는 서버에서 로드하므로 로컬 저장에서 제외
+      partialize: (state) => ({
+        thresholdPct: state.thresholdPct,
+        valueHistory: state.valueHistory,
+      }),
     }
   )
 );
