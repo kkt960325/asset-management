@@ -18,6 +18,9 @@ type AssetStore = {
   thresholdPct: number;
   /** 임계치를 초과한 자산이 하나라도 있으면 true */
   rebalanceAlert: boolean;
+  /** 실시간 USD/KRW 환율 (시세 갱신 시 업데이트, 초기값은 폴백 환율) */
+  exchangeRate: number;
+  setExchangeRate: (rate: number) => void;
 
   addAsset: (input: NewAssetInput) => void;
   updateShares: (id: string, shares: number) => void;
@@ -51,7 +54,10 @@ export const useAssetStore = create<AssetStore>()(
       assets: initialAssets,
       thresholdPct: 3,
       rebalanceAlert: false,
+      exchangeRate: 1_400,
       valueHistory: [],
+
+      setExchangeRate: (rate) => set({ exchangeRate: rate }),
 
       addAsset: (input) =>
         set((state) => {

@@ -10,11 +10,12 @@ type Props = {
 };
 
 export default function PortfolioSummary({ onRefresh, loading, error, lastUpdated }: Props) {
-  const { assets, thresholdPct, rebalanceAlert, setThreshold } = useAssetStore();
+  const { assets, thresholdPct, rebalanceAlert, setThreshold, exchangeRate } = useAssetStore();
   const summary = selectRebalanceSummary(assets, thresholdPct);
   const alertCount = summary.results.filter((r) => r.needsRebalancing).length;
   const totalTargetPct = selectTotalTargetRatio(assets);
 
+  // ── 통화별 자산 합계 ──────────────────────────────────────────────────────────
   const totalKrw = assets
     .filter((a) => a.currency === "KRW")
     .reduce((s, a) => s + (a.currentValue ?? 0), 0);
@@ -23,6 +24,13 @@ export default function PortfolioSummary({ onRefresh, loading, error, lastUpdate
     .reduce((s, a) => s + (a.currentValue ?? 0), 0);
   const hasAnyValue = totalKrw > 0 || totalUsd > 0;
 
+  // ── 통합 환산 총액 ────────────────────────────────────────────────────────────
+  // USD → KRW 환산 포함 전체 합계 (exchangeRate = 0 방어)
+  const rate = exchangeRate > 0 ? exchangeRate : 1_400;
+  const totalKrwCombined = totalKrw + totalUsd * rate;
+  const totalUsdCombined = totalUsd + totalKrw / rate;
+
+  // ── 목표 배분 상태 ────────────────────────────────────────────────────────────
   const targetPctStatus =
     Math.abs(totalTargetPct - 100) < 0.01
       ? ("ok" as const)
@@ -92,27 +100,30 @@ export default function PortfolioSummary({ onRefresh, loading, error, lastUpdate
 
       {/* ── 스탯 카드 4개 ─────────────────────────────── */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
-        {/* 총 평가금액 KRW */}
+        {/* 통합 총액 KRW */}
         <StatCard
-          label="총 평가금액 (KRW)"
-          value={hasAnyValue ? `₩${Math.round(totalKrw).toLocaleString("ko-KR")}` : "—"}
-          sub="주택청약·IRP·금현물 포함"
+          label="전체 자산 총액 (KRW)"
+          value={hasAnyValue ? fmtKrw(totalKrwCombined) : "—"}
+          sub="전체 자산 통합 환산"
           accent="sky"
+          detail={
+            hasAnyValue
+              ? `KRW ${fmtKrw(totalKrw)}  +  USD $${fmtUsdShort(totalUsd)} × ${Math.round(rate).toLocaleString("ko-KR")}`
+              : undefined
+          }
         />
 
-        {/* 총 평가금액 USD */}
+        {/* 통합 총액 USD */}
         <StatCard
-          label="총 평가금액 (USD)"
-          value={
-            hasAnyValue
-              ? `$${totalUsd.toLocaleString("en-US", {
-                  minimumFractionDigits: 2,
-                  maximumFractionDigits: 2,
-                })}`
-              : "—"
-          }
-          sub={`미국주식 ${assets.filter((a) => a.currency === "USD").length}개 종목`}
+          label="전체 자산 총액 (USD)"
+          value={hasAnyValue ? `$${fmtUsd(totalUsdCombined)}` : "—"}
+          sub="전체 자산 통합 환산"
           accent="sky"
+          detail={
+            hasAnyValue
+              ? `USD $${fmtUsdShort(totalUsd)}  +  KRW ${fmtKrw(totalKrw)} ÷ ${Math.round(rate).toLocaleString("ko-KR")}`
+              : undefined
+          }
         />
 
         {/* 리밸런싱 필요 */}
@@ -157,21 +168,29 @@ export default function PortfolioSummary({ onRefresh, loading, error, lastUpdate
           <span className="text-[#1a2540]">|</span>
 
           <span className="flex items-center gap-1.5 text-[#3a4a6a]">
-            목표 배분 합계
+            적용 환율
+            <span className="font-mono font-bold text-[#8392b0]">
+              ₩{Math.round(rate).toLocaleString("ko-KR")}
+            </span>
+            <span className="text-[#3a4a6a]">/ $1</span>
+            {exchangeRate > 0 && (
+              <span className="text-emerald-400/60 text-[10px]">실시간</span>
+            )}
+          </span>
+
+          <span className="text-[#1a2540]">|</span>
+
+          <span className="flex items-center gap-1.5 text-[#3a4a6a]">
+            목표 배분
             <span className={`font-mono font-bold ${targetPctColor}`}>
               {totalTargetPct.toFixed(1)}%
             </span>
-            {targetPctStatus === "ok" && (
-              <span className="text-emerald-400/60">✓</span>
-            )}
+            {targetPctStatus === "ok" && <span className="text-emerald-400/60">✓</span>}
             {targetPctStatus === "over" && (
-              <span className="text-rose-400 text-[10px]">초과 — {(totalTargetPct - 100).toFixed(1)}%p 조정 필요</span>
+              <span className="text-rose-400 text-[10px]">초과 {(totalTargetPct - 100).toFixed(1)}%p</span>
             )}
             {targetPctStatus === "under" && totalTargetPct > 0 && (
               <span className="text-amber-400 text-[10px]">{(100 - totalTargetPct).toFixed(1)}%p 미배분</span>
-            )}
-            {targetPctStatus === "none" && (
-              <span className="text-[#3a4a6a] text-[10px]">— 아래 테이블에서 목표비중 설정</span>
             )}
           </span>
         </div>
@@ -191,6 +210,27 @@ export default function PortfolioSummary({ onRefresh, loading, error, lastUpdate
   );
 }
 
+// ── 포맷 유틸 ─────────────────────────────────────────────────────────────────
+
+function fmtKrw(v: number): string {
+  if (v >= 1_000_000_000_000) return `₩${(v / 1_000_000_000_000).toFixed(2)}조`;
+  if (v >= 100_000_000)       return `₩${(v / 100_000_000).toFixed(2)}억`;
+  if (v >= 10_000_000)        return `₩${(v / 10_000_000).toFixed(1)}천만`;
+  if (v >= 1_000_000)         return `₩${(v / 1_000_000).toFixed(1)}백만`;
+  return `₩${Math.round(v).toLocaleString("ko-KR")}`;
+}
+
+function fmtUsd(v: number): string {
+  if (v >= 1_000_000) return `${(v / 1_000_000).toFixed(2)}M`;
+  if (v >= 1_000)     return `${(v / 1_000).toFixed(1)}K`;
+  return v.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+}
+
+function fmtUsdShort(v: number): string {
+  if (v >= 1_000) return `${(v / 1_000).toFixed(1)}K`;
+  return v.toFixed(0);
+}
+
 // ── StatCard ──────────────────────────────────────────────────────────────────
 
 function StatCard({
@@ -199,12 +239,14 @@ function StatCard({
   sub,
   accent,
   dot,
+  detail,
 }: {
   label: string;
   value: string;
   sub: string;
   accent: "sky" | "emerald" | "amber" | "rose";
   dot?: boolean;
+  detail?: string;
 }) {
   const accentColor = {
     sky: "text-sky-400",
@@ -222,7 +264,10 @@ function StatCard({
         )}
         <span className={`font-mono text-xl font-bold ${accentColor} leading-none`}>{value}</span>
       </div>
-      <p className="text-[11px] text-[#3a4a6a]">{sub}</p>
+      <p className="text-[11px] text-sky-400/60">{sub}</p>
+      {detail && (
+        <p className="font-mono text-[9px] text-[#3a4a6a] leading-relaxed mt-0.5 break-all">{detail}</p>
+      )}
     </div>
   );
 }
