@@ -1,15 +1,24 @@
 import { NextRequest, NextResponse } from "next/server";
 import YahooFinance from "yahoo-finance2";
+import * as cheerio from "cheerio";
 
 export const runtime = "nodejs";
 
 const yf = new YahooFinance();
 
 // ── 상수 ──────────────────────────────────────────────────────────────────────
-const GOLD_COMEX = "GC=F";
-const USDKRW_TICKER = "USDKRW=X";
-const GOLD_G_PER_OZ = 31.1035;   // 1 troy oz = 31.1035 g (정확한 환산)
-const USDKRW_FALLBACK = 1_400;   // Yahoo 환율 조회 실패 시 사용
+const GOLD_COMEX      = "GC=F";
+const USDKRW_TICKER   = "USDKRW=X";
+const GOLD_G_PER_OZ   = 31.1035;   // 1 troy oz = 31.1035 g
+const USDKRW_FALLBACK = 1_400;
+
+// ── 네이버 금융 스크래핑 대상 ─────────────────────────────────────────────────
+// Yahoo Finance DB 미등재 국내 ETF: .KS 심볼 → 네이버 금융 6자리 코드
+const NAVER_KS_MAP: Record<string, string> = {
+  "452560.KS": "452560",   // 1Q K반도체TOP2채권혼합50  (ISA-SEMI)
+  "414810.KS": "414810",   // 1Q 200액티브              (ISA-200)
+  "443330.KS": "443330",   // TIGER K방산&우주           (TIGER K방산)
+};
 
 // ── 응답 타입 ─────────────────────────────────────────────────────────────────
 export type PricesApiResponse = {
@@ -18,7 +27,10 @@ export type PricesApiResponse = {
   exchangeRate: number;
 };
 
-async function fetchOne(ticker: string): Promise<{ ticker: string; price: number | null; currency: string }> {
+// ── Yahoo Finance 단일 종목 조회 ──────────────────────────────────────────────
+async function fetchYahoo(
+  ticker: string
+): Promise<{ ticker: string; price: number | null; currency: string }> {
   try {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const quote = (await yf.quote(ticker)) as any;
@@ -28,16 +40,82 @@ async function fetchOne(ticker: string): Promise<{ ticker: string; price: number
       currency: (quote?.currency as string | undefined) ?? "USD",
     };
   } catch (err) {
-    // 개별 종목 오류는 전체 응답을 실패시키지 않음
-    // — 실패 종목은 price: null → 클라이언트에서 이전 가격 유지
     console.warn(
-      `[prices] ${ticker} 조회 실패:`,
+      `[yahoo] ${ticker} 조회 실패:`,
       err instanceof Error ? err.message : String(err)
     );
     return { ticker, price: null, currency: "USD" };
   }
 }
 
+// ── 네이버 금융 현재가 스크래핑 ───────────────────────────────────────────────
+async function fetchNaver(
+  ticker: string
+): Promise<{ ticker: string; price: number | null; currency: string }> {
+  const code = NAVER_KS_MAP[ticker];
+  if (!code) return { ticker, price: null, currency: "KRW" };
+
+  try {
+    const url = `https://finance.naver.com/item/main.naver?code=${code}`;
+    const res = await fetch(url, {
+      cache: "no-store",
+      headers: {
+        "User-Agent":
+          "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36",
+        "Accept-Language": "ko-KR,ko;q=0.9,en-US;q=0.8",
+        Accept: "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
+        Referer: "https://finance.naver.com/",
+      },
+    });
+
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+
+    // 네이버 금융 페이지 인코딩 처리 (EUC-KR 또는 UTF-8)
+    const buffer = await res.arrayBuffer();
+    const contentType = res.headers.get("content-type") ?? "";
+    const charset =
+      contentType.match(/charset=([^\s;]+)/i)?.[1]?.toLowerCase() ?? "utf-8";
+    const html = new TextDecoder(
+      charset === "euc-kr" ? "euc-kr" : "utf-8"
+    ).decode(buffer);
+
+    const $ = cheerio.load(html);
+
+    // 현재가 선택자 — 우선순위 순으로 시도
+    const candidates: string[] = [
+      $("#_nowVal").first().text(),                        // id 기반 (가장 안정적)
+      $("div.today p.no_today span.blind").first().text(), // 사용자 지정 선택자
+      $("div.today .no_today em").first().text(),
+      $("div.today strong em").first().text(),
+      $(".today em").first().text(),
+    ];
+
+    for (const raw of candidates) {
+      const digits = raw.replace(/[^0-9]/g, "");
+      if (digits.length >= 2) {
+        const price = parseInt(digits, 10);
+        // 100원 미만은 레이블 텍스트 오파싱으로 간주해 제외
+        if (!isNaN(price) && price >= 100) {
+          return { ticker, price, currency: "KRW" };
+        }
+      }
+    }
+
+    throw new Error(
+      `가격 파싱 실패 — 시도 결과: [${candidates
+        .map((c) => `"${c.trim().slice(0, 30)}"`)
+        .join(", ")}]`
+    );
+  } catch (err) {
+    console.warn(
+      `[naver] ${ticker}(${code}) 조회 실패:`,
+      err instanceof Error ? err.message : String(err)
+    );
+    return { ticker, price: null, currency: "KRW" };
+  }
+}
+
+// ── Route Handler ─────────────────────────────────────────────────────────────
 export async function GET(req: NextRequest) {
   const raw = req.nextUrl.searchParams.get("tickers") ?? "";
   const tickers = raw
@@ -46,26 +124,41 @@ export async function GET(req: NextRequest) {
     .filter(Boolean);
 
   if (tickers.length === 0) {
-    return NextResponse.json<PricesApiResponse>({ prices: {}, exchangeRate: USDKRW_FALLBACK });
+    return NextResponse.json<PricesApiResponse>({
+      prices: {},
+      exchangeRate: USDKRW_FALLBACK,
+    });
   }
 
-  // USDKRW=X 는 환율 표시 및 금현물 환산에 항상 필요
-  const fetchList: string[] = Array.from(new Set([...tickers, USDKRW_TICKER]));
+  // ── 소스별 분리 ───────────────────────────────────────────────────────────
+  const naverTickers = tickers.filter((t) => t in NAVER_KS_MAP);
+  const yahooOnlyTickers = tickers.filter((t) => !(t in NAVER_KS_MAP));
 
-  const settled = await Promise.allSettled(fetchList.map(fetchOne));
+  // Yahoo: USDKRW=X 는 환율 산출 및 금현물 변환에 항상 필요
+  const yahooFetchList: string[] = Array.from(
+    new Set([...yahooOnlyTickers, USDKRW_TICKER])
+  );
+
+  // ── 병렬 조회 ─────────────────────────────────────────────────────────────
+  const [yahooResults, naverResults] = await Promise.all([
+    Promise.allSettled(yahooFetchList.map(fetchYahoo)),
+    Promise.allSettled(naverTickers.map(fetchNaver)),
+  ]);
 
   const rawPrices: Record<string, { price: number; currency: string }> = {};
-  for (const r of settled) {
+  for (const r of [...yahooResults, ...naverResults]) {
     if (r.status === "fulfilled" && r.value.price !== null) {
-      rawPrices[r.value.ticker] = { price: r.value.price, currency: r.value.currency };
+      rawPrices[r.value.ticker] = {
+        price: r.value.price,
+        currency: r.value.currency,
+      };
     }
+    // rejected / price:null → 해당 종목 제외 → 클라이언트에서 이전 가격 유지
   }
 
   const exchangeRate = rawPrices[USDKRW_TICKER]?.price ?? USDKRW_FALLBACK;
 
-  // GC=F(USD/oz) → KRW/g 변환
-  // KRX 금현물 shares 단위는 g(그램). 1 troy oz = 31.1035 g
-  // price(KRW/g) = goldUSD/oz ÷ 31.1035 g/oz × USD/KRW 환율
+  // GC=F(USD/oz) → KRW/g 변환 (KRX 금현물 shares 단위 = g)
   if (rawPrices[GOLD_COMEX]) {
     rawPrices[GOLD_COMEX] = {
       price: (rawPrices[GOLD_COMEX].price / GOLD_G_PER_OZ) * exchangeRate,
@@ -73,7 +166,7 @@ export async function GET(req: NextRequest) {
     };
   }
 
-  // 응답: 요청된 티커만 포함 (USDKRW=X 는 exchangeRate 필드로 별도 반환)
+  // 요청된 티커만 응답 (USDKRW=X 는 exchangeRate 필드로 별도 반환)
   const prices: Record<string, { price: number; currency: string }> = {};
   for (const ticker of tickers) {
     if (rawPrices[ticker]) prices[ticker] = rawPrices[ticker];
