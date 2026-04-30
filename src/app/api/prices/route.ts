@@ -19,13 +19,23 @@ export type PricesApiResponse = {
 };
 
 async function fetchOne(ticker: string): Promise<{ ticker: string; price: number | null; currency: string }> {
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const quote = (await yf.quote(ticker)) as any;
-  return {
-    ticker,
-    price: (quote?.regularMarketPrice as number | undefined) ?? null,
-    currency: (quote?.currency as string | undefined) ?? "USD",
-  };
+  try {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const quote = (await yf.quote(ticker)) as any;
+    return {
+      ticker,
+      price: (quote?.regularMarketPrice as number | undefined) ?? null,
+      currency: (quote?.currency as string | undefined) ?? "USD",
+    };
+  } catch (err) {
+    // 개별 종목 오류는 전체 응답을 실패시키지 않음
+    // — 실패 종목은 price: null → 클라이언트에서 이전 가격 유지
+    console.warn(
+      `[prices] ${ticker} 조회 실패:`,
+      err instanceof Error ? err.message : String(err)
+    );
+    return { ticker, price: null, currency: "USD" };
+  }
 }
 
 export async function GET(req: NextRequest) {

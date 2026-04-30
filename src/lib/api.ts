@@ -8,13 +8,16 @@ import type { PricesApiResponse } from "@/app/api/prices/route";
 /**
  * 내부 ticker → Yahoo Finance 심볼 매핑.
  *
- * KRX금현물: GC=F(COMEX 금 선물, USD/oz) → route.ts에서 KRW/g으로 환산
+ * 한국 ETF는 KRX 6자리 코드 + ".KS" 형식.
+ * KRX금현물은 GC=F(COMEX 금 선물, USD/oz) → route.ts에서 KRW/g으로 환산.
  */
 export const YAHOO_TICKER_MAP: Record<string, string> = {
-  "KRX금현물": "GC=F",
-  // "TIGER K방산": "305720.KS", // KRX 코드 확인 필요
-  // "ISA-SEMI":    "453810.KS", // KRX 코드 확인 필요
-  // "ISA-200":     "481460.KS", // KRX 코드 확인 필요
+  // KRX 금현물
+  "KRX금현물":  "GC=F",
+  // ISA 계좌 ETF (KOSPI 상장, .KS 접미사)
+  "ISA-SEMI":   "452560.KS",   // 1Q K반도체TOP2채권혼합50
+  "ISA-200":    "414810.KS",   // 1Q 200액티브
+  "TIGER K방산": "443330.KS",  // TIGER K방산&우주
 };
 
 /** 시세 조회 대상에서 제외할 카테고리 (잔액 = 평가금액) */
