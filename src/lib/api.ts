@@ -20,8 +20,8 @@ export const YAHOO_TICKER_MAP: Record<string, string> = {
   "TIGER K방산": "443330.KS",  // TIGER K방산&우주
 };
 
-/** 시세 조회 대상에서 제외할 카테고리 (잔액 = 평가금액) */
-const NON_MARKET_CATEGORIES = new Set(["주택청약", "IRP"]);
+/** 시세 조회 대상에서 제외할 카테고리 (잔액 또는 manualValue = 평가금액) */
+const NON_MARKET_CATEGORIES = new Set(["주택청약", "IRP", "부동산", "보증금"]);
 
 type AssetForPrice = { ticker: string; category: string };
 

@@ -39,6 +39,16 @@ const CAT: Record<AssetCategory, { border: string; badge: string; text: string }
     badge: "bg-slate-500/10 text-slate-400 border-slate-500/20",
     text: "text-slate-400",
   },
+  "부동산": {
+    border: "border-l-teal-400",
+    badge: "bg-teal-500/10 text-teal-400 border-teal-500/20",
+    text: "text-teal-400",
+  },
+  "보증금": {
+    border: "border-l-cyan-400",
+    badge: "bg-cyan-500/10 text-cyan-400 border-cyan-500/20",
+    text: "text-cyan-400",
+  },
 };
 
 // ── 포맷 유틸 ─────────────────────────────────────────────────────────────────
@@ -59,6 +69,8 @@ function fmtValue(value: number | undefined, currency: string | undefined): stri
 function fmtShares(shares: number, category: AssetCategory): string {
   if (category === "주택청약" || category === "IRP")
     return "₩" + Math.round(shares).toLocaleString("ko-KR");
+  if (category === "부동산" || category === "보증금")
+    return "—";  // 고정 자산: 수량 개념 없음
   if (category === "Crypto")
     return shares.toLocaleString("en-US", { minimumFractionDigits: 0, maximumFractionDigits: 8 });
   return shares.toLocaleString("en-US");
@@ -97,12 +109,13 @@ function statusBadge(
 // ── 메인 컴포넌트 ─────────────────────────────────────────────────────────────
 
 export default function AssetTable() {
-  const { assets, thresholdPct, updateShares, updateAsset, removeAsset, exchangeRate } = useAssetStore();
+  const { assets, thresholdPct, updateShares, updateAsset, removeAsset, updateManualValue, exchangeRate } = useAssetStore();
   const summary = selectRebalanceSummary(assets, thresholdPct, exchangeRate);
   const resultMap = Object.fromEntries(summary.results.map((r) => [r.id, r]));
 
   const [editing, setEditing] = useState<{ id: string; value: string } | null>(null);
   const [editingRatio, setEditingRatio] = useState<{ id: string; value: string } | null>(null);
+  const [editingManual, setEditingManual] = useState<{ id: string; value: string } | null>(null);
   const [deletingId, setDeletingId] = useState<string | null>(null);
   const [tooltip, setTooltip] = useState<{ id: string; x: number; y: number } | null>(null);
 
@@ -121,6 +134,20 @@ export default function AssetTable() {
   function startEditRatio(asset: Asset) {
     setEditingRatio({ id: asset.id, value: asset.targetRatio > 0 ? String(asset.targetRatio) : "" });
     setEditing(null);
+    setEditingManual(null);
+  }
+
+  function startEditManual(asset: Asset) {
+    setEditingManual({ id: asset.id, value: String(asset.manualValue ?? asset.currentValue ?? 0) });
+    setEditing(null);
+    setEditingRatio(null);
+  }
+
+  function commitEditManual() {
+    if (!editingManual) return;
+    const n = Number(editingManual.value.replace(/[,₩\s]/g, ""));
+    if (!isNaN(n) && n >= 0) updateManualValue(editingManual.id, n);
+    setEditingManual(null);
   }
 
   function commitEditRatio() {
@@ -142,7 +169,7 @@ export default function AssetTable() {
   }
 
   // 카테고리 순서로 정렬
-  const ORDER: AssetCategory[] = ["미국주식", "Crypto", "금현물", "ISA-ETF", "주택청약", "IRP"];
+  const ORDER: AssetCategory[] = ["미국주식", "Crypto", "금현물", "ISA-ETF", "주택청약", "IRP", "부동산", "보증금"];
   const sorted = [...assets].sort(
     (a, b) => ORDER.indexOf(a.category) - ORDER.indexOf(b.category)
   );
@@ -194,11 +221,15 @@ export default function AssetTable() {
               const isEditing = editing?.id === asset.id;
               const isEditingRatio = editingRatio?.id === asset.id;
               const isDeleting = deletingId === asset.id;
+              const isFixedAsset = asset.category === "부동산" || asset.category === "보증금";
+              const isEditingManualThis = editingManual?.id === asset.id;
               const hasPriceData = asset.currentValue !== undefined;
-              const devStyle = result && hasPriceData
+              const devStyle = result && hasPriceData && !isFixedAsset
                 ? deviationStyle(result.deviationPct, thresholdPct)
                 : { text: "text-[#3a4a6a]", bg: "" };
-              const status = result && hasPriceData
+              const status = isFixedAsset
+                ? { label: "고정", cls: "text-teal-400 bg-teal-500/10 border border-teal-500/20" }
+                : result && hasPriceData
                 ? statusBadge(result, thresholdPct)
                 : { label: "—", cls: "text-[#3a4a6a]" };
 
@@ -271,7 +302,42 @@ export default function AssetTable() {
 
                   {/* 평가금액 */}
                   <td className="px-4 py-3.5 text-right">
-                    {asset.currentValue !== undefined && asset.currentValue > 0 ? (
+                    {isFixedAsset ? (
+                      isEditingManualThis ? (
+                        <div className="flex items-center justify-end gap-1.5">
+                          <input
+                            autoFocus
+                            type="text"
+                            inputMode="numeric"
+                            value={editingManual!.value}
+                            onChange={(e) =>
+                              setEditingManual({ id: asset.id, value: e.target.value })
+                            }
+                            onKeyDown={(e) => {
+                              if (e.key === "Enter") commitEditManual();
+                              if (e.key === "Escape") setEditingManual(null);
+                            }}
+                            onBlur={commitEditManual}
+                            className="w-36 bg-[#111827] border border-teal-500/40 rounded-md px-2 py-1 font-mono text-xs text-teal-300 text-right focus:outline-none focus:border-teal-400"
+                          />
+                        </div>
+                      ) : (
+                        <button
+                          onClick={() => startEditManual(asset)}
+                          title="클릭하여 금액 수정"
+                          className="group flex flex-col items-end gap-0.5 w-full hover:text-teal-300 transition-colors"
+                        >
+                          <span className="font-mono text-xs text-[#e2e8f8] group-hover:text-teal-300 transition-colors">
+                            {asset.currentValue !== undefined && asset.currentValue > 0
+                              ? `₩${Math.round(asset.currentValue).toLocaleString("ko-KR")}`
+                              : "—"}
+                          </span>
+                          <span className="font-mono text-[9px] text-teal-500/50 group-hover:text-teal-400/80 transition-colors italic">
+                            ✎ 클릭하여 수정
+                          </span>
+                        </button>
+                      )
+                    ) : asset.currentValue !== undefined && asset.currentValue > 0 ? (
                       <div className="flex flex-col items-end gap-0.5">
                         <span className="font-mono text-xs text-[#e2e8f8]">
                           {fmtValue(asset.currentValue, asset.currency)}
@@ -360,9 +426,9 @@ export default function AssetTable() {
                     )}
                   </td>
 
-                  {/* 괴리율 — 시세 미조회 종목은 표시 안 함 (0원으로 매수 지시 방지) */}
+                  {/* 괴리율 — 시세 미조회 또는 고정 자산은 표시 안 함 */}
                   <td className="px-4 py-3.5 whitespace-nowrap">
-                    {result && asset.targetRatio > 0 && asset.currentValue !== undefined ? (
+                    {result && asset.targetRatio > 0 && asset.currentValue !== undefined && !isFixedAsset ? (
                       <span
                         className={`inline-block font-mono text-xs px-1.5 py-0.5 rounded ${devStyle.bg} ${devStyle.text}`}
                       >
@@ -374,9 +440,9 @@ export default function AssetTable() {
                     )}
                   </td>
 
-                  {/* 리밸런싱 — 시세 미조회 종목은 표시 안 함 (0원으로 매수 지시 방지) */}
+                  {/* 리밸런싱 — 시세 미조회 또는 고정 자산은 표시 안 함 */}
                   <td className="px-4 py-3.5 whitespace-nowrap">
-                    {result && asset.targetRatio > 0 && asset.currentValue !== undefined ? (
+                    {result && asset.targetRatio > 0 && asset.currentValue !== undefined && !isFixedAsset ? (
                       <RebalanceCell
                         asset={asset}
                         result={result}
@@ -401,7 +467,7 @@ export default function AssetTable() {
                   {/* 액션 */}
                   <td className="px-4 py-3.5 whitespace-nowrap">
                     <div className="flex items-center gap-1.5">
-                      {!isEditing && (
+                      {!isEditing && !isFixedAsset && (
                         <button
                           onClick={() => startEdit(asset)}
                           title="수량 수정"

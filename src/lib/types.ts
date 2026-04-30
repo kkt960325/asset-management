@@ -4,23 +4,27 @@ export type AssetCategory =
   | "ISA-ETF"
   | "주택청약"
   | "IRP"
-  | "Crypto";
+  | "Crypto"
+  | "부동산"
+  | "보증금";
 
 export interface Asset {
   id: string;
   ticker: string;
   name: string;
-  /** 보유 수량. 주택청약·IRP는 잔액(원)을 그대로 저장 */
+  /** 보유 수량. 주택청약·IRP는 잔액(원)을 그대로 저장. 부동산·보증금은 1 고정 */
   shares: number;
   category: AssetCategory;
   /** 목표 비중 (0–100, %) */
   targetRatio: number;
-  /** 단가. 시장 자산만 존재, 비시장 자산(주택청약·IRP)은 undefined */
+  /** 단가. 시장 자산만 존재, 비시장 자산은 undefined */
   currentPrice?: number;
   /** 평가금액 = shares × currentPrice. 비시장 자산은 shares 값이 곧 평가금액 */
   currentValue?: number;
   /** 가격 통화 (USD | KRW). 미국주식은 USD, 한국 자산은 KRW */
   currency?: string;
+  /** 부동산·보증금 전용: 사용자가 직접 입력한 KRW 평가금액. 시세 갱신 시 초기화 안 됨 */
+  manualValue?: number;
 }
 
 /** addAsset 호출 시 id·시세 필드는 store에서 자동 처리 */

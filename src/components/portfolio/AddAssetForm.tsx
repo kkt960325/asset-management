@@ -4,7 +4,8 @@ import { useState } from "react";
 import { useAssetStore, selectTotalTargetRatio } from "@/lib/store";
 import type { AssetCategory } from "@/lib/types";
 
-const CATEGORIES: AssetCategory[] = ["미국주식", "Crypto", "금현물", "ISA-ETF", "주택청약", "IRP"];
+const CATEGORIES: AssetCategory[] = ["미국주식", "Crypto", "금현물", "ISA-ETF", "주택청약", "IRP", "부동산", "보증금"];
+const FIXED_CATEGORIES = new Set<AssetCategory>(["부동산", "보증금"]);
 
 const INITIAL = {
   ticker: "",
@@ -12,6 +13,7 @@ const INITIAL = {
   shares: "",
   category: "미국주식" as AssetCategory,
   targetRatio: "",
+  manualValue: "",
 };
 
 export default function AddAssetForm() {
@@ -19,6 +21,7 @@ export default function AddAssetForm() {
   const [form, setForm] = useState(INITIAL);
   const [added, setAdded] = useState<string | null>(null);
 
+  const isFixed = FIXED_CATEGORIES.has(form.category);
   const currentTotalPct = selectTotalTargetRatio(assets);
   const inputRatio = parseFloat(form.targetRatio) || 0;
   const projectedTotal = currentTotalPct + inputRatio;
@@ -31,19 +34,37 @@ export default function AddAssetForm() {
 
   function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
-    const ticker = form.ticker.trim().toUpperCase();
-    const shares = Number(form.shares.replace(/,/g, ""));
-    if (!ticker || isNaN(shares) || shares < 0) return;
 
-    addAsset({
-      ticker,
-      name: form.name.trim() || ticker,
-      shares,
-      category: form.category,
-      targetRatio: Math.min(100, Math.max(0, Number(form.targetRatio) || 0)),
-    });
+    if (isFixed) {
+      const name = form.name.trim() || form.ticker.trim();
+      const ticker = (form.ticker.trim() || name).toUpperCase();
+      const amount = Number(form.manualValue.replace(/,/g, ""));
+      if (!ticker || isNaN(amount) || amount < 0) return;
 
-    setAdded(ticker);
+      addAsset({
+        ticker,
+        name,
+        shares: 1,
+        category: form.category,
+        targetRatio: Math.min(100, Math.max(0, Number(form.targetRatio) || 0)),
+        manualValue: amount,
+      });
+      setAdded(name || ticker);
+    } else {
+      const ticker = form.ticker.trim().toUpperCase();
+      const shares = Number(form.shares.replace(/,/g, ""));
+      if (!ticker || isNaN(shares) || shares < 0) return;
+
+      addAsset({
+        ticker,
+        name: form.name.trim() || ticker,
+        shares,
+        category: form.category,
+        targetRatio: Math.min(100, Math.max(0, Number(form.targetRatio) || 0)),
+      });
+      setAdded(ticker);
+    }
+
     setForm(INITIAL);
     setTimeout(() => setAdded(null), 2500);
   }
@@ -57,6 +78,11 @@ export default function AddAssetForm() {
           <span className="text-xs font-semibold uppercase tracking-widest text-[#8392b0]">
             새로운 종목 추가
           </span>
+          {isFixed && (
+            <span className="text-[10px] px-2 py-0.5 rounded-md bg-teal-500/10 text-teal-400 border border-teal-500/20 font-semibold">
+              고정 자산
+            </span>
+          )}
         </div>
 
         {/* 목표 배분 현황 뱃지 */}
@@ -84,29 +110,29 @@ export default function AddAssetForm() {
 
       <form onSubmit={handleSubmit} className="p-5">
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3">
-          {/* 티커 */}
+          {/* 티커 / 자산명 */}
           <div className="flex flex-col gap-1.5">
             <label className="text-[10px] uppercase tracking-widest text-[#3a4a6a] font-semibold">
-              티커 <span className="text-rose-500">*</span>
+              {isFixed ? "자산명" : "티커"} <span className="text-rose-500">*</span>
             </label>
             <input
               type="text"
-              placeholder="AAPL"
+              placeholder={isFixed ? "강남 아파트" : "AAPL"}
               value={form.ticker}
-              onChange={(e) => set("ticker", e.target.value.toUpperCase())}
+              onChange={(e) => set("ticker", isFixed ? e.target.value : e.target.value.toUpperCase())}
               required
               className="h-9 bg-[#111827] border border-[#1a2540] rounded-lg px-3 font-mono text-sm text-[#e2e8f8] placeholder-[#3a4a6a] focus:outline-none focus:border-sky-500/50 focus:bg-[#0d1828] transition-all"
             />
           </div>
 
-          {/* 종목명 */}
+          {/* 종목명 (고정 자산은 설명으로 활용) */}
           <div className="flex flex-col gap-1.5">
             <label className="text-[10px] uppercase tracking-widest text-[#3a4a6a] font-semibold">
-              종목명
+              {isFixed ? "메모" : "종목명"}
             </label>
             <input
               type="text"
-              placeholder="Apple Inc."
+              placeholder={isFixed ? "선택 입력" : "Apple Inc."}
               value={form.name}
               onChange={(e) => set("name", e.target.value)}
               className="h-9 bg-[#111827] border border-[#1a2540] rounded-lg px-3 text-sm text-[#e2e8f8] placeholder-[#3a4a6a] focus:outline-none focus:border-sky-500/50 focus:bg-[#0d1828] transition-all"
@@ -129,23 +155,35 @@ export default function AddAssetForm() {
             </select>
           </div>
 
-          {/* 보유수량 */}
+          {/* 보유수량 (시장 자산) / 평가금액 (고정 자산) */}
           <div className="flex flex-col gap-1.5">
             <label className="text-[10px] uppercase tracking-widest text-[#3a4a6a] font-semibold">
-              보유수량 <span className="text-rose-500">*</span>
+              {isFixed ? "평가금액 (₩)" : "보유수량"} <span className="text-rose-500">*</span>
             </label>
-            <input
-              type="text"
-              inputMode="numeric"
-              placeholder="100"
-              value={form.shares}
-              onChange={(e) => set("shares", e.target.value)}
-              required
-              className="h-9 bg-[#111827] border border-[#1a2540] rounded-lg px-3 font-mono text-sm text-[#e2e8f8] placeholder-[#3a4a6a] focus:outline-none focus:border-sky-500/50 focus:bg-[#0d1828] transition-all"
-            />
+            {isFixed ? (
+              <input
+                type="text"
+                inputMode="numeric"
+                placeholder="500,000,000"
+                value={form.manualValue}
+                onChange={(e) => set("manualValue", e.target.value)}
+                required
+                className="h-9 bg-[#111827] border border-teal-500/30 rounded-lg px-3 font-mono text-sm text-teal-300 placeholder-[#3a4a6a] focus:outline-none focus:border-teal-400/60 focus:bg-[#0d1828] transition-all"
+              />
+            ) : (
+              <input
+                type="text"
+                inputMode="numeric"
+                placeholder="100"
+                value={form.shares}
+                onChange={(e) => set("shares", e.target.value)}
+                required
+                className="h-9 bg-[#111827] border border-[#1a2540] rounded-lg px-3 font-mono text-sm text-[#e2e8f8] placeholder-[#3a4a6a] focus:outline-none focus:border-sky-500/50 focus:bg-[#0d1828] transition-all"
+              />
+            )}
           </div>
 
-          {/* 목표비중 */}
+          {/* 목표비중 + 제출 버튼 */}
           <div className="flex flex-col gap-1.5">
             <label className="text-[10px] uppercase tracking-widest text-[#3a4a6a] font-semibold">
               목표비중 (%)
@@ -198,7 +236,7 @@ export default function AddAssetForm() {
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7" />
             </svg>
             <span>
-              <span className="font-mono font-semibold">{added}</span> 종목이 추가되었습니다.
+              <span className="font-mono font-semibold">{added}</span> 자산이 추가되었습니다.
             </span>
           </div>
         )}

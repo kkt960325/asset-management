@@ -27,6 +27,8 @@ type AssetStore = {
   updateAsset: (id: string, updates: Partial<Omit<Asset, "id">>) => void;
   removeAsset: (id: string) => void;
   setTargetRatios: (ratios: Record<string, number>) => void;
+  /** 부동산·보증금 전용: manualValue와 currentValue를 동시에 갱신. 시세 갱신 시 유지 */
+  updateManualValue: (id: string, value: number) => void;
   /**
    * ticker → PriceData 맵으로 currentPrice / currentValue / currency 일괄 갱신.
    * 갱신 후 rebalanceAlert를 자동으로 재계산한다.
@@ -62,7 +64,18 @@ export const useAssetStore = create<AssetStore>()(
       addAsset: (input) =>
         set((state) => {
           const id = `${input.ticker}-${Date.now()}`;
-          const updatedAssets = [...state.assets, { id, ...input }];
+          const isFixed = input.category === "부동산" || input.category === "보증금";
+          const newAsset = isFixed
+            ? {
+                id,
+                ...input,
+                shares: 1,
+                manualValue: input.manualValue ?? 0,
+                currentValue: input.manualValue ?? 0,
+                currency: "KRW" as const,
+              }
+            : { id, ...input };
+          const updatedAssets = [...state.assets, newAsset];
           return {
             assets: updatedAssets,
             rebalanceAlert: calcRebalance(updatedAssets, state.thresholdPct, state.exchangeRate).needsRebalancing,
@@ -107,9 +120,24 @@ export const useAssetStore = create<AssetStore>()(
           };
         }),
 
+      updateManualValue: (id, value) =>
+        set((state) => {
+          const updatedAssets = state.assets.map((a) =>
+            a.id === id
+              ? { ...a, manualValue: value, currentValue: value, currency: "KRW" as const }
+              : a
+          );
+          return {
+            assets: updatedAssets,
+            rebalanceAlert: calcRebalance(updatedAssets, state.thresholdPct, state.exchangeRate).needsRebalancing,
+          };
+        }),
+
       updatePrices: (prices) =>
         set((state) => {
           const updatedAssets = state.assets.map((a) => {
+            // 고정 자산(부동산·보증금): manualValue 보존, 시세 갱신 시 무시
+            if (a.manualValue !== undefined) return a;
             // 1차: 정확한 티커 매칭 / 2차: "ticker-USD" 폴백 (Crypto 안전망)
             const data = prices[a.ticker] ?? prices[`${a.ticker}-USD`];
             if (!data) return a;
@@ -165,7 +193,7 @@ export const useAssetStore = create<AssetStore>()(
     }),
     {
       name: "asset-management-store",
-      version: 2,
+      version: 3,
     }
   )
 );
