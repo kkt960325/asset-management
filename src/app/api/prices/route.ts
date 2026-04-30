@@ -198,56 +198,109 @@ const COINGECKO_ID_MAP: Record<string, string> = {
   TON:    "the-open-network",
 };
 
-/** 1차: Binance REST API  — BTCUSDT, TAOUSDT 형식 */
-async function fetchCryptoBinance(base: string): Promise<number | null> {
-  try {
-    const res = await fetch(
-      `https://api.binance.com/api/v3/ticker/price?symbol=${base}USDT`,
-      { cache: "no-store" }
-    );
-    if (!res.ok) return null;
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const data: any = await res.json();
-    const price = parseFloat(data.price);
-    return !isNaN(price) && price > 0 ? price : null;
-  } catch {
-    return null;
-  }
-}
-
-/** 2차: CoinGecko simple/price API */
-async function fetchCryptoCoingecko(base: string): Promise<number | null> {
-  const id = COINGECKO_ID_MAP[base] ?? base.toLowerCase();
-  try {
-    const res = await fetch(
-      `https://api.coingecko.com/api/v3/simple/price?ids=${id}&vs_currencies=usd`,
-      { cache: "no-store" }
-    );
-    if (!res.ok) return null;
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const data: any = await res.json();
-    const price = data[id]?.usd;
-    return typeof price === "number" && price > 0 ? price : null;
-  } catch {
-    return null;
-  }
-}
-
 /**
- * 가상자산 통합 조회. ticker = "BTC-USD" 형식.
- * Binance 성공 → 즉시 반환. 실패 시 CoinGecko 시도.
+ * 모든 Crypto 티커를 CoinGecko 배치 1회 요청으로 조회.
+ * CoinGecko 에서 가격이 없는 티커는 Binance REST로 개별 폴백.
+ *
+ * ticker 형식: "BTC-USD", "TAO-USD" (api.ts에서 변환된 Yahoo 스타일)
+ * 반환 currency: "USD" (원화 환산은 rebalancer.ts에서 처리)
  */
-async function fetchCrypto(
-  ticker: string
-): Promise<{ ticker: string; price: number | null; currency: string }> {
-  const base = ticker.replace(/-USD$/i, "").toUpperCase();
-  const price =
-    (await fetchCryptoBinance(base)) ??
-    (await fetchCryptoCoingecko(base));
-  if (price === null) {
-    console.warn(`[crypto] ${ticker}(${base}): Binance + CoinGecko 모두 실패`);
+async function fetchAllCrypto(
+  tickers: string[]
+): Promise<Array<{ ticker: string; price: number | null; currency: string }>> {
+  if (tickers.length === 0) return [];
+
+  // "BTC-USD" → base "BTC", CoinGecko id "bitcoin"
+  const tickerToBase: Record<string, string> = {};
+  const baseToTicker: Record<string, string> = {};
+  const baseToId:     Record<string, string> = {};
+  const idToBase:     Record<string, string> = {};
+
+  for (const ticker of tickers) {
+    const base = ticker.replace(/-USD$/i, "").toUpperCase();
+    const id   = COINGECKO_ID_MAP[base] ?? base.toLowerCase();
+    tickerToBase[ticker] = base;
+    baseToTicker[base]   = ticker;
+    baseToId[base]       = id;
+    idToBase[id]         = base;
   }
-  return { ticker, price, currency: "USD" };
+
+  const priceByBase: Record<string, number | null> = Object.fromEntries(
+    Object.keys(baseToTicker).map((b) => [b, null])
+  );
+
+  // ── 1차: CoinGecko 배치 요청 ────────────────────────────────────────────
+  const ids = Object.values(baseToId).join(",");
+  const cgUrl = `https://api.coingecko.com/api/v3/simple/price?ids=${ids}&vs_currencies=usd`;
+  console.log(`[crypto] CoinGecko 배치 요청 → ids=${ids}`);
+
+  try {
+    const res = await fetch(cgUrl, {
+      cache: "no-store",
+      headers: { Accept: "application/json" },
+    });
+    console.log(`[crypto] CoinGecko HTTP ${res.status}`);
+
+    if (res.ok) {
+      const data = (await res.json()) as Record<string, { usd?: number }>;
+      console.log(`[crypto] CoinGecko 응답:`, JSON.stringify(data));
+
+      for (const [id, base] of Object.entries(idToBase)) {
+        const price = data[id]?.usd;
+        if (typeof price === "number" && price > 0) {
+          priceByBase[base] = price;
+          console.log(`[crypto] ✓ CoinGecko  ${baseToTicker[base]} (${id}): $${price}`);
+        } else {
+          console.warn(`[crypto] ✗ CoinGecko  ${baseToTicker[base]} (${id}): 가격 없음`);
+        }
+      }
+    }
+  } catch (err) {
+    console.warn("[crypto] CoinGecko 요청 실패:", err instanceof Error ? err.message : String(err));
+  }
+
+  // ── 2차: CoinGecko 실패 티커 → Binance 개별 폴백 ──────────────────────
+  const missingBases = Object.keys(priceByBase).filter((b) => priceByBase[b] === null);
+  if (missingBases.length > 0) {
+    console.log(`[crypto] Binance 폴백 대상: ${missingBases.join(", ")}`);
+    await Promise.all(
+      missingBases.map(async (base) => {
+        const symbol = `${base}USDT`;
+        try {
+          const res = await fetch(
+            `https://api.binance.com/api/v3/ticker/price?symbol=${symbol}`,
+            { cache: "no-store" }
+          );
+          console.log(`[crypto] Binance HTTP ${res.status} (${symbol})`);
+          if (res.ok) {
+            const data = (await res.json()) as { price?: string };
+            const price = parseFloat(data.price ?? "");
+            if (!isNaN(price) && price > 0) {
+              priceByBase[base] = price;
+              console.log(`[crypto] ✓ Binance  ${baseToTicker[base]} (${symbol}): $${price}`);
+            } else {
+              console.warn(`[crypto] ✗ Binance  ${symbol}: 유효하지 않은 가격`);
+            }
+          }
+        } catch (err) {
+          console.warn(`[crypto] Binance 요청 실패 (${symbol}):`, err instanceof Error ? err.message : String(err));
+        }
+      })
+    );
+  }
+
+  // 최종 결과 조립 및 요약 로그
+  const results = tickers.map((ticker) => {
+    const base  = tickerToBase[ticker];
+    const price = priceByBase[base] ?? null;
+    if (price === null) {
+      console.warn(`[crypto] 최종 실패: ${ticker} (${base}) — CoinGecko + Binance 모두 불가`);
+    } else {
+      console.log(`[crypto] 최종 성공: ${ticker} (${base}) = $${price}`);
+    }
+    return { ticker, price, currency: "USD" as const };
+  });
+  return results;
 }
 
 // ── Route Handler ─────────────────────────────────────────────────────────────
@@ -280,22 +333,27 @@ export async function GET(req: NextRequest) {
     new Set([...yahooOnlyTickers, USDKRW_TICKER])
   );
 
-  // ── 소스별 병렬 조회 (Crypto는 Binance→CoinGecko, Yahoo 미사용) ────────────
-  const [yahooResults, naverResults, cryptoResults] = await Promise.all([
+  console.log(`[prices] 요청 tickers: [${tickers.join(", ")}]`);
+  console.log(`[prices] yahoo=${yahooFetchList.length} naver=${naverTickers.length} crypto=${cryptoTickers.length}`);
+
+  // ── 소스별 병렬 조회 (Crypto는 CoinGecko 배치→Binance 폴백, Yahoo 미사용) ──
+  const [yahooResults, naverResults, cryptoBatch] = await Promise.all([
     Promise.allSettled(yahooFetchList.map(fetchYahoo)),
     Promise.allSettled(naverTickers.map(fetchNaver)),
-    Promise.allSettled(cryptoTickers.map(fetchCrypto)),
+    fetchAllCrypto(cryptoTickers),                // 배치 함수, 내부에서 로그 처리
   ]);
 
   const rawPrices: Record<string, { price: number; currency: string }> = {};
-  for (const r of [...yahooResults, ...naverResults, ...cryptoResults]) {
+
+  for (const r of [...yahooResults, ...naverResults]) {
     if (r.status === "fulfilled" && r.value.price !== null) {
-      rawPrices[r.value.ticker] = {
-        price: r.value.price,
-        currency: r.value.currency,
-      };
+      rawPrices[r.value.ticker] = { price: r.value.price, currency: r.value.currency };
     }
-    // rejected / price:null → 해당 종목 제외 → 클라이언트에서 이전 가격 유지
+  }
+  for (const r of cryptoBatch) {
+    if (r.price !== null) {
+      rawPrices[r.ticker] = { price: r.price, currency: r.currency };
+    }
   }
 
   const exchangeRate = rawPrices[USDKRW_TICKER]?.price ?? USDKRW_FALLBACK;
