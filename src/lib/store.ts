@@ -150,7 +150,7 @@ export const useAssetStore = create<AssetStore>()(
     }),
     {
       name: "asset-management-store",
-      version: 1,
+      version: 2,
     }
   )
 );

@@ -20,6 +20,14 @@ const NAVER_KS_MAP: Record<string, string> = {
   "443330.KS": "443330",   // TIGER K방산&우주           (TIGER K방산)
 };
 
+// ── 정적 폴백 단가 (Supabase 연동 전 임시 — Vercel US 서버에서 네이버 차단 대응) ──
+// 실제 최신 단가로 수동 업데이트 필요. Supabase 연결 후 이 맵을 제거할 것.
+const STATIC_KRW_PRICES: Record<string, number> = {
+  "452560.KS": 10_200,   // ISA-SEMI  (1Q K반도체TOP2채권혼합50)
+  "414810.KS": 10_500,   // ISA-200   (1Q 200액티브)
+  "443330.KS": 11_000,   // TIGER K방산&우주
+};
+
 // ── 응답 타입 ─────────────────────────────────────────────────────────────────
 export type PricesApiResponse = {
   prices: Record<string, { price: number; currency: string }>;
@@ -56,6 +64,11 @@ async function fetchNaver(
 ): Promise<{ ticker: string; price: number | null; currency: string }> {
   const code = NAVER_KS_MAP[ticker];
   if (!code) return { ticker, price: null, currency: "KRW" };
+
+  // ── 0차: 정적 단가 즉시 반환 (네이버 차단 환경 대응) ─────────────────────────
+  if (ticker in STATIC_KRW_PRICES) {
+    return { ticker, price: STATIC_KRW_PRICES[ticker], currency: "KRW" };
+  }
 
   // ── 1차: 모바일 JSON API ───────────────────────────────────────────────────
   try {
@@ -193,7 +206,9 @@ export async function GET(req: NextRequest) {
 
   const exchangeRate = rawPrices[USDKRW_TICKER]?.price ?? USDKRW_FALLBACK;
 
-  // GC=F(USD/oz) → KRW/g 변환 (KRX 금현물 shares 단위 = g)
+  // GC=F: USD/oz → KRW/g
+  // 예) $3,300/oz ÷ 31.1035 g/oz = $106.1/g × 1,400 KRW/USD = ₩148,526/g
+  // store.updatePrices: currentValue = shares(g) × ₩/g → 단순 곱셈, ×1000 없음
   if (rawPrices[GOLD_COMEX]) {
     rawPrices[GOLD_COMEX] = {
       price: (rawPrices[GOLD_COMEX].price / GOLD_G_PER_OZ) * exchangeRate,
