@@ -165,31 +165,89 @@ async function fetchNaver(
   }
 }
 
-// ── Binance 현재가 조회 (Crypto Yahoo 실패 시 폴백) ──────────────────────────
-// "BTC-USD" → BTCUSDT, "TAO-USD" → TAOUSDT 변환 후 REST API 호출
-async function fetchCryptoBinance(
-  ticker: string
-): Promise<{ ticker: string; price: number | null; currency: string }> {
-  const base = ticker.replace(/-USD$/i, "").toUpperCase();
-  const symbol = `${base}USDT`;
+// ── 가상자산 시세 조회 (Yahoo Finance 완전 미사용) ────────────────────────────
+// 심볼 → CoinGecko ID 매핑 (미등록 심볼은 소문자를 ID로 대체 시도)
+const COINGECKO_ID_MAP: Record<string, string> = {
+  BTC:    "bitcoin",
+  ETH:    "ethereum",
+  SOL:    "solana",
+  BNB:    "binancecoin",
+  XRP:    "ripple",
+  ADA:    "cardano",
+  AVAX:   "avalanche-2",
+  DOT:    "polkadot",
+  LINK:   "chainlink",
+  UNI:    "uniswap",
+  ATOM:   "cosmos",
+  LTC:    "litecoin",
+  NEAR:   "near",
+  TAO:    "bittensor",
+  SUI:    "sui",
+  APT:    "aptos",
+  OP:     "optimism",
+  ARB:    "arbitrum",
+  INJ:    "injective-protocol",
+  RENDER: "render-token",
+  FET:    "fetch-ai",
+  WIF:    "dogwifcoin",
+  PEPE:   "pepe",
+  DOGE:   "dogecoin",
+  SHIB:   "shiba-inu",
+  MATIC:  "matic-network",
+  TRX:    "tron",
+  TON:    "the-open-network",
+};
+
+/** 1차: Binance REST API  — BTCUSDT, TAOUSDT 형식 */
+async function fetchCryptoBinance(base: string): Promise<number | null> {
   try {
     const res = await fetch(
-      `https://api.binance.com/api/v3/ticker/price?symbol=${symbol}`,
+      `https://api.binance.com/api/v3/ticker/price?symbol=${base}USDT`,
       { cache: "no-store" }
     );
-    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    if (!res.ok) return null;
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const data: any = await res.json();
     const price = parseFloat(data.price);
-    if (!isNaN(price) && price > 0) return { ticker, price, currency: "USD" };
-    throw new Error("invalid price");
-  } catch (err) {
-    console.warn(
-      `[binance] ${ticker}(${symbol}) 조회 실패:`,
-      err instanceof Error ? err.message : String(err)
-    );
-    return { ticker, price: null, currency: "USD" };
+    return !isNaN(price) && price > 0 ? price : null;
+  } catch {
+    return null;
   }
+}
+
+/** 2차: CoinGecko simple/price API */
+async function fetchCryptoCoingecko(base: string): Promise<number | null> {
+  const id = COINGECKO_ID_MAP[base] ?? base.toLowerCase();
+  try {
+    const res = await fetch(
+      `https://api.coingecko.com/api/v3/simple/price?ids=${id}&vs_currencies=usd`,
+      { cache: "no-store" }
+    );
+    if (!res.ok) return null;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const data: any = await res.json();
+    const price = data[id]?.usd;
+    return typeof price === "number" && price > 0 ? price : null;
+  } catch {
+    return null;
+  }
+}
+
+/**
+ * 가상자산 통합 조회. ticker = "BTC-USD" 형식.
+ * Binance 성공 → 즉시 반환. 실패 시 CoinGecko 시도.
+ */
+async function fetchCrypto(
+  ticker: string
+): Promise<{ ticker: string; price: number | null; currency: string }> {
+  const base = ticker.replace(/-USD$/i, "").toUpperCase();
+  const price =
+    (await fetchCryptoBinance(base)) ??
+    (await fetchCryptoCoingecko(base));
+  if (price === null) {
+    console.warn(`[crypto] ${ticker}(${base}): Binance + CoinGecko 모두 실패`);
+  }
+  return { ticker, price, currency: "USD" };
 }
 
 // ── Route Handler ─────────────────────────────────────────────────────────────
@@ -209,21 +267,28 @@ export async function GET(req: NextRequest) {
 
   // ── 소스별 분리 ───────────────────────────────────────────────────────────
   const naverTickers = tickers.filter((t) => t in NAVER_KS_MAP);
-  const yahooOnlyTickers = tickers.filter((t) => !(t in NAVER_KS_MAP));
+  // Crypto: -USD 접미사. USDKRW=X·GC=F 등은 제외. Yahoo 미사용.
+  const cryptoTickers = tickers.filter(
+    (t) => t.endsWith("-USD") && t !== USDKRW_TICKER && !(t in NAVER_KS_MAP)
+  );
+  const yahooOnlyTickers = tickers.filter(
+    (t) => !(t in NAVER_KS_MAP) && !cryptoTickers.includes(t)
+  );
 
   // Yahoo: USDKRW=X 는 환율 산출 및 금현물 변환에 항상 필요
   const yahooFetchList: string[] = Array.from(
     new Set([...yahooOnlyTickers, USDKRW_TICKER])
   );
 
-  // ── 병렬 조회 ─────────────────────────────────────────────────────────────
-  const [yahooResults, naverResults] = await Promise.all([
+  // ── 소스별 병렬 조회 (Crypto는 Binance→CoinGecko, Yahoo 미사용) ────────────
+  const [yahooResults, naverResults, cryptoResults] = await Promise.all([
     Promise.allSettled(yahooFetchList.map(fetchYahoo)),
     Promise.allSettled(naverTickers.map(fetchNaver)),
+    Promise.allSettled(cryptoTickers.map(fetchCrypto)),
   ]);
 
   const rawPrices: Record<string, { price: number; currency: string }> = {};
-  for (const r of [...yahooResults, ...naverResults]) {
+  for (const r of [...yahooResults, ...naverResults, ...cryptoResults]) {
     if (r.status === "fulfilled" && r.value.price !== null) {
       rawPrices[r.value.ticker] = {
         price: r.value.price,
@@ -234,24 +299,6 @@ export async function GET(req: NextRequest) {
   }
 
   const exchangeRate = rawPrices[USDKRW_TICKER]?.price ?? USDKRW_FALLBACK;
-
-  // ── Crypto 폴백: Yahoo 실패한 -USD 티커 → Binance 재시도 ──────────────────
-  const cryptoRetry = yahooFetchList.filter(
-    (t) => t.endsWith("-USD") && !rawPrices[t]
-  );
-  if (cryptoRetry.length > 0) {
-    const binanceResults = await Promise.allSettled(
-      cryptoRetry.map(fetchCryptoBinance)
-    );
-    for (const r of binanceResults) {
-      if (r.status === "fulfilled" && r.value.price !== null) {
-        rawPrices[r.value.ticker] = {
-          price: r.value.price,
-          currency: r.value.currency,
-        };
-      }
-    }
-  }
 
   // GC=F: USD/oz → KRW/g
   // 예) $3,300/oz ÷ 31.1035 g/oz = $106.1/g × 1,400 KRW/USD = ₩148,526/g

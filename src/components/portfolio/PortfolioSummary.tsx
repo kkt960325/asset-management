@@ -98,8 +98,8 @@ export default function PortfolioSummary({ onRefresh, loading, error, lastUpdate
         </div>
       )}
 
-      {/* ── 스탯 카드 4개 ─────────────────────────────── */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+      {/* ── 스탯 카드 5개 ─────────────────────────────── */}
+      <div className="grid grid-cols-2 lg:grid-cols-5 gap-3">
         {/* 통합 총액 KRW */}
         <StatCard
           label="전체 자산 총액 (KRW)"
@@ -133,6 +133,30 @@ export default function PortfolioSummary({ onRefresh, loading, error, lastUpdate
           sub={alertCount > 0 ? `±${thresholdPct}%p 임계치 초과` : "모든 종목 정상"}
           accent={alertCount > 0 ? "amber" : "emerald"}
           dot={alertCount > 0}
+        />
+
+        {/* 목표비중 합계 */}
+        <StatCard
+          label="목표비중 합계"
+          value={`${totalTargetPct.toFixed(1)}%`}
+          sub={
+            targetPctStatus === "ok"
+              ? "100% 배분 완료"
+              : targetPctStatus === "over"
+              ? `${(totalTargetPct - 100).toFixed(1)}%p 초과 — 조정 필요`
+              : totalTargetPct === 0
+              ? "목표비중 미설정"
+              : `${(100 - totalTargetPct).toFixed(1)}%p 미배분`
+          }
+          accent={
+            targetPctStatus === "ok"
+              ? "emerald"
+              : targetPctStatus === "over"
+              ? "rose"
+              : totalTargetPct === 0
+              ? "sky"
+              : "amber"
+          }
         />
 
         {/* 임계치 설정 */}
