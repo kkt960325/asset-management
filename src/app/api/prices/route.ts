@@ -12,21 +12,12 @@ const USDKRW_TICKER   = "USDKRW=X";
 const GOLD_G_PER_OZ   = 31.1035;   // 1 troy oz = 31.1035 g
 const USDKRW_FALLBACK = 1_400;
 
-// ── 네이버 금융 스크래핑 대상 ─────────────────────────────────────────────────
-// Yahoo Finance DB 미등재 국내 ETF: .KS 심볼 → 네이버 금융 6자리 코드
-const NAVER_KS_MAP: Record<string, string> = {
-  "452560.KS": "452560",   // 1Q K반도체TOP2채권혼합50  (ISA-SEMI)
-  "414810.KS": "414810",   // 1Q 200액티브              (ISA-200)
-  "443330.KS": "443330",   // TIGER K방산&우주           (TIGER K방산)
-};
-
-// ── 정적 폴백 단가 (Supabase 연동 전 임시 — Vercel US 서버에서 네이버 차단 대응) ──
-// 실제 최신 단가로 수동 업데이트 필요. Supabase 연결 후 이 맵을 제거할 것.
-const STATIC_KRW_PRICES: Record<string, number> = {
-  "452560.KS": 10_200,   // ISA-SEMI  (1Q K반도체TOP2채권혼합50)
-  "414810.KS": 10_500,   // ISA-200   (1Q 200액티브)
-  "443330.KS": 11_000,   // TIGER K방산&우주
-};
+// ── 네이버 금융 동적 조회 ─────────────────────────────────────────────────────
+// Yahoo Finance DB 미등재 국내 주식·ETF는 "{6자리코드}.KS" 형식으로 요청됨.
+// .KS 접미사를 제거하면 네이버 금융 6자리 코드가 된다 (하드코딩 불필요).
+function getNaverCode(ksSymbol: string): string {
+  return ksSymbol.replace(/\.KS$/, "");
+}
 
 // ── 응답 타입 ─────────────────────────────────────────────────────────────────
 export type PricesApiResponse = {
@@ -64,13 +55,8 @@ async function fetchYahoo(
 async function fetchNaver(
   ticker: string
 ): Promise<{ ticker: string; price: number | null; currency: string }> {
-  const code = NAVER_KS_MAP[ticker];
+  const code = getNaverCode(ticker);
   if (!code) return { ticker, price: null, currency: "KRW" };
-
-  // ── 0차: 정적 단가 즉시 반환 (네이버 차단 환경 대응) ─────────────────────────
-  if (ticker in STATIC_KRW_PRICES) {
-    return { ticker, price: STATIC_KRW_PRICES[ticker], currency: "KRW" };
-  }
 
   // ── 1차: 모바일 JSON API ───────────────────────────────────────────────────
   try {
@@ -337,13 +323,14 @@ export async function GET(req: NextRequest) {
   }
 
   // ── 소스별 분리 ───────────────────────────────────────────────────────────
-  const naverTickers = tickers.filter((t) => t in NAVER_KS_MAP);
+  // .KS 접미사 = 한국 주식·ETF → 네이버 금융으로 조회
+  const naverTickers = tickers.filter((t) => t.endsWith(".KS"));
   // Crypto: -USD 접미사. USDKRW=X·GC=F 등은 제외. Yahoo 미사용.
   const cryptoTickers = tickers.filter(
-    (t) => t.endsWith("-USD") && t !== USDKRW_TICKER && !(t in NAVER_KS_MAP)
+    (t) => t.endsWith("-USD") && t !== USDKRW_TICKER && !t.endsWith(".KS")
   );
   const yahooOnlyTickers = tickers.filter(
-    (t) => !(t in NAVER_KS_MAP) && !cryptoTickers.includes(t)
+    (t) => !t.endsWith(".KS") && !cryptoTickers.includes(t)
   );
 
   // Yahoo: USDKRW=X 는 환율 산출 및 금현물 변환에 항상 필요

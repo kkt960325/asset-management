@@ -8,17 +8,18 @@ import type { PricesApiResponse } from "@/app/api/prices/route";
 /**
  * 내부 ticker → Yahoo Finance 심볼 매핑.
  *
- * 한국 ETF는 KRX 6자리 코드 + ".KS" 형식.
- * KRX금현물은 GC=F(COMEX 금 선물, USD/oz) → route.ts에서 KRW/g으로 환산.
+ * KRX 6자리 숫자 코드(예: 005930)는 자동으로 ".KS" 접미사가 붙어 네이버 금융으로 조회됨.
+ * 이 맵에는 특수 변환이 필요한 심볼만 등록한다.
  */
 export const YAHOO_TICKER_MAP: Record<string, string> = {
-  // KRX 금현물
-  "KRX금현물":  "GC=F",
-  // ISA 계좌 ETF (KOSPI 상장, .KS 접미사)
-  "ISA-SEMI":   "452560.KS",   // 1Q K반도체TOP2채권혼합50
-  "ISA-200":    "414810.KS",   // 1Q 200액티브
-  "TIGER K방산": "443330.KS",  // TIGER K방산&우주
+  // KRX 금현물 — GC=F(COMEX USD/oz) → route.ts에서 KRW/g으로 환산
+  "KRX금현물": "GC=F",
 };
+
+/** KRX 6자리 숫자 코드인지 확인 (한국 주식·ETF 자동 인식) */
+function isKrxCode(ticker: string): boolean {
+  return /^\d{6}$/.test(ticker);
+}
 
 /** 시세 조회 대상에서 제외할 카테고리 (잔액 또는 manualValue = 평가금액) */
 const NON_MARKET_CATEGORIES = new Set(["주택청약", "IRP", "부동산"]);
@@ -39,6 +40,8 @@ export async function fetchAssetPrices(marketAssets: AssetForPrice[]): Promise<{
     marketAssets.map(({ ticker, category }) => {
       const mapped = YAHOO_TICKER_MAP[ticker];
       if (mapped) return [ticker, mapped];
+      // KRX 6자리 코드 → 자동으로 .KS 심볼로 변환 (네이버 금융 조회)
+      if (isKrxCode(ticker)) return [ticker, `${ticker}.KS`];
       // Crypto: "BTC" → "BTC-USD", "BTC-USD" → "BTC-USD" (이미 있으면 그대로)
       if (category === "Crypto") {
         return [ticker, ticker.includes("-") ? ticker : `${ticker}-USD`];
