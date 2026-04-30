@@ -44,11 +44,6 @@ const CAT: Record<AssetCategory, { border: string; badge: string; text: string }
     badge: "bg-teal-500/10 text-teal-400 border-teal-500/20",
     text: "text-teal-400",
   },
-  "보증금": {
-    border: "border-l-cyan-400",
-    badge: "bg-cyan-500/10 text-cyan-400 border-cyan-500/20",
-    text: "text-cyan-400",
-  },
 };
 
 // ── 포맷 유틸 ─────────────────────────────────────────────────────────────────
@@ -69,8 +64,8 @@ function fmtValue(value: number | undefined, currency: string | undefined): stri
 function fmtShares(shares: number, category: AssetCategory): string {
   if (category === "주택청약" || category === "IRP")
     return "₩" + Math.round(shares).toLocaleString("ko-KR");
-  if (category === "부동산" || category === "보증금")
-    return "—";  // 고정 자산: 수량 개념 없음
+  if (category === "부동산")
+    return "—";  // 부동산: 수량 개념 없음
   if (category === "Crypto")
     return shares.toLocaleString("en-US", { minimumFractionDigits: 0, maximumFractionDigits: 8 });
   return shares.toLocaleString("en-US");
@@ -169,7 +164,7 @@ export default function AssetTable() {
   }
 
   // 카테고리 순서로 정렬
-  const ORDER: AssetCategory[] = ["미국주식", "Crypto", "금현물", "ISA-ETF", "주택청약", "IRP", "부동산", "보증금"];
+  const ORDER: AssetCategory[] = ["미국주식", "Crypto", "금현물", "ISA-ETF", "주택청약", "IRP", "부동산"];
   const sorted = [...assets].sort(
     (a, b) => ORDER.indexOf(a.category) - ORDER.indexOf(b.category)
   );
@@ -221,7 +216,7 @@ export default function AssetTable() {
               const isEditing = editing?.id === asset.id;
               const isEditingRatio = editingRatio?.id === asset.id;
               const isDeleting = deletingId === asset.id;
-              const isFixedAsset = asset.category === "부동산" || asset.category === "보증금";
+              const isFixedAsset = asset.category === "부동산";
               const isEditingManualThis = editingManual?.id === asset.id;
               const hasPriceData = asset.currentValue !== undefined;
               const devStyle = result && hasPriceData && !isFixedAsset

@@ -27,7 +27,7 @@ type AssetStore = {
   updateAsset: (id: string, updates: Partial<Omit<Asset, "id">>) => void;
   removeAsset: (id: string) => void;
   setTargetRatios: (ratios: Record<string, number>) => void;
-  /** 부동산·보증금 전용: manualValue와 currentValue를 동시에 갱신. 시세 갱신 시 유지 */
+  /** 부동산 전용: manualValue와 currentValue를 동시에 갱신. 시세 갱신 시 유지 */
   updateManualValue: (id: string, value: number) => void;
   /**
    * ticker → PriceData 맵으로 currentPrice / currentValue / currency 일괄 갱신.
@@ -64,7 +64,7 @@ export const useAssetStore = create<AssetStore>()(
       addAsset: (input) =>
         set((state) => {
           const id = `${input.ticker}-${Date.now()}`;
-          const isFixed = input.category === "부동산" || input.category === "보증금";
+          const isFixed = input.category === "부동산";
           const newAsset = isFixed
             ? {
                 id,
@@ -136,7 +136,7 @@ export const useAssetStore = create<AssetStore>()(
       updatePrices: (prices) =>
         set((state) => {
           const updatedAssets = state.assets.map((a) => {
-            // 고정 자산(부동산·보증금): manualValue 보존, 시세 갱신 시 무시
+            // 부동산: manualValue 보존, 시세 갱신 시 무시
             if (a.manualValue !== undefined) return a;
             // 1차: 정확한 티커 매칭 / 2차: "ticker-USD" 폴백 (Crypto 안전망)
             const data = prices[a.ticker] ?? prices[`${a.ticker}-USD`];
@@ -193,7 +193,7 @@ export const useAssetStore = create<AssetStore>()(
     }),
     {
       name: "asset-management-store",
-      version: 3,
+      version: 4,
     }
   )
 );

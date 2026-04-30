@@ -15,7 +15,6 @@ const CAT: Record<AssetCategory, { color: string; label: string }> = {
   "주택청약": { color: "#a78bfa", label: "주택청약" },     // 황혼의 보랏빛
   "IRP":      { color: "#fb923c", label: "IRP" },         // 토토로 석양
   "부동산":   { color: "#2dd4bf", label: "부동산" },      // 대지의 청록
-  "보증금":   { color: "#67e8f9", label: "보증금" },      // 바다 청록
 };
 
 type SliceData = {
