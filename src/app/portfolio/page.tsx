@@ -4,6 +4,7 @@ import { useEffect } from "react";
 import { useAssetPrices } from "@/lib/api";
 import PortfolioSummary from "@/components/portfolio/PortfolioSummary";
 import PortfolioChart from "@/components/portfolio/PortfolioChart";
+import PortfolioPieChart from "@/components/portfolio/PortfolioPieChart";
 import AssetTable from "@/components/portfolio/AssetTable";
 import AddAssetForm from "@/components/portfolio/AddAssetForm";
 
@@ -22,7 +23,13 @@ export default function PortfolioPage() {
         error={error}
         lastUpdated={lastUpdated}
       />
-      <PortfolioChart />
+
+      {/* 자산 비중(파이차트) + 총액 추이(라인차트) 나란히 배치 */}
+      <div className="grid grid-cols-1 lg:grid-cols-[5fr_7fr] gap-6">
+        <PortfolioPieChart />
+        <PortfolioChart />
+      </div>
+
       <AssetTable />
       <AddAssetForm />
     </div>
