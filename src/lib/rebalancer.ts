@@ -30,7 +30,7 @@ export type AssetRebalanceResult = {
 };
 
 export type RebalanceSummary = {
-  /** 전체 평가금액 합산. USD·KRW 혼재 시 환율 환산 없이 단순 합산됨 */
+  /** 전체 평가금액 원화 환산 합산 (USD 자산은 × exchangeRate 포함) */
   totalValue: number;
   results: AssetRebalanceResult[];
   /** 임계치를 초과한 자산이 하나라도 있으면 true */
@@ -44,22 +44,27 @@ export type RebalanceSummary = {
 /**
  * 포트폴리오 리밸런싱 계산.
  *
- * @param assets     스토어의 자산 배열
+ * @param assets        스토어의 자산 배열
  * @param thresholdPct  알림 임계치 (퍼센트포인트, 예: 3 → ±3%p)
+ * @param exchangeRate  USD→KRW 환율 (기본 1). 모든 비중을 원화 기준으로 통일하는 데 사용.
  *
- * @example
- * const summary = calcRebalance(assets, 3);
- * summary.needsRebalancing;       // 알림 발생 여부
- * summary.results[0].deviationPct // 첫 번째 자산의 괴리율(%)
+ * @remarks rebalanceAmount는 항상 KRW 단위로 반환됨.
+ *          USD 자산의 매수/매도 금액은 호출 측에서 exchangeRate로 역환산해야 함.
  */
 export function calcRebalance(
   assets: Asset[],
-  thresholdPct: number
+  thresholdPct: number,
+  exchangeRate = 1
 ): RebalanceSummary {
-  const totalValue = assets.reduce((sum, a) => sum + (a.currentValue ?? 0), 0);
+  const toKrw = (a: Asset) => {
+    const v = a.currentValue ?? 0;
+    return a.currency === "USD" ? v * exchangeRate : v;
+  };
+
+  const totalValue = assets.reduce((sum, a) => sum + toKrw(a), 0);
 
   const results: AssetRebalanceResult[] = assets.map((a) => {
-    const currentValue = a.currentValue ?? 0;
+    const currentValue = toKrw(a);
     const currentWeight = totalValue > 0 ? currentValue / totalValue : 0;
     const targetWeight = a.targetRatio / 100;
     const weightDeviation = currentWeight - targetWeight;

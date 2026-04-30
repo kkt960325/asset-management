@@ -48,13 +48,49 @@ async function fetchYahoo(
   }
 }
 
-// ── 네이버 금융 현재가 스크래핑 ───────────────────────────────────────────────
+// ── 네이버 금융 현재가 조회 ────────────────────────────────────────────────────
+// Primary: 모바일 JSON API (IP 차단 가능성 낮음, 파싱 불필요)
+// Fallback: PC 웹 HTML 스크래핑
 async function fetchNaver(
   ticker: string
 ): Promise<{ ticker: string; price: number | null; currency: string }> {
   const code = NAVER_KS_MAP[ticker];
   if (!code) return { ticker, price: null, currency: "KRW" };
 
+  // ── 1차: 모바일 JSON API ───────────────────────────────────────────────────
+  try {
+    const mobileUrl = `https://m.stock.naver.com/api/stock/${code}/basic`;
+    const res = await fetch(mobileUrl, {
+      cache: "no-store",
+      headers: {
+        "User-Agent":
+          "Mozilla/5.0 (iPhone; CPU iPhone OS 17_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.0 Mobile/15E148 Safari/604.1",
+        Accept: "application/json",
+        Referer: "https://m.stock.naver.com/",
+      },
+    });
+    if (res.ok) {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const data: any = await res.json();
+      // closePrice (장 마감) 또는 현재가 필드 — 쉼표 포함 문자열일 수 있음
+      const raw: string | undefined =
+        data?.closePrice ?? data?.currentPrice ?? data?.stockEndPrice;
+      if (raw) {
+        const price = parseInt(String(raw).replace(/[^0-9]/g, ""), 10);
+        if (!isNaN(price) && price >= 100) {
+          return { ticker, price, currency: "KRW" };
+        }
+      }
+    }
+    console.warn(`[naver-mobile] ${ticker}(${code}) JSON 파싱 실패 — HTML 폴백`);
+  } catch (err) {
+    console.warn(
+      `[naver-mobile] ${ticker}(${code}) 요청 실패:`,
+      err instanceof Error ? err.message : String(err)
+    );
+  }
+
+  // ── 2차: PC 웹 HTML 스크래핑 ──────────────────────────────────────────────
   try {
     const url = `https://finance.naver.com/item/main.naver?code=${code}`;
     const res = await fetch(url, {
@@ -83,8 +119,8 @@ async function fetchNaver(
 
     // 현재가 선택자 — 우선순위 순으로 시도
     const candidates: string[] = [
-      $("#_nowVal").first().text(),                        // id 기반 (가장 안정적)
-      $("div.today p.no_today span.blind").first().text(), // 사용자 지정 선택자
+      $("#_nowVal").first().text(),
+      $("div.today p.no_today span.blind").first().text(),
       $("div.today .no_today em").first().text(),
       $("div.today strong em").first().text(),
       $(".today em").first().text(),
@@ -94,7 +130,6 @@ async function fetchNaver(
       const digits = raw.replace(/[^0-9]/g, "");
       if (digits.length >= 2) {
         const price = parseInt(digits, 10);
-        // 100원 미만은 레이블 텍스트 오파싱으로 간주해 제외
         if (!isNaN(price) && price >= 100) {
           return { ticker, price, currency: "KRW" };
         }
@@ -108,7 +143,7 @@ async function fetchNaver(
     );
   } catch (err) {
     console.warn(
-      `[naver] ${ticker}(${code}) 조회 실패:`,
+      `[naver-html] ${ticker}(${code}) 조회 실패:`,
       err instanceof Error ? err.message : String(err)
     );
     return { ticker, price: null, currency: "KRW" };

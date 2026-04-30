@@ -65,7 +65,7 @@ export const useAssetStore = create<AssetStore>()(
           const updatedAssets = [...state.assets, { id, ...input }];
           return {
             assets: updatedAssets,
-            rebalanceAlert: calcRebalance(updatedAssets, state.thresholdPct).needsRebalancing,
+            rebalanceAlert: calcRebalance(updatedAssets, state.thresholdPct, state.exchangeRate).needsRebalancing,
           };
         }),
 
@@ -74,7 +74,7 @@ export const useAssetStore = create<AssetStore>()(
           const updatedAssets = state.assets.map((a) => (a.id === id ? { ...a, shares } : a));
           return {
             assets: updatedAssets,
-            rebalanceAlert: calcRebalance(updatedAssets, state.thresholdPct).needsRebalancing,
+            rebalanceAlert: calcRebalance(updatedAssets, state.thresholdPct, state.exchangeRate).needsRebalancing,
           };
         }),
 
@@ -83,7 +83,7 @@ export const useAssetStore = create<AssetStore>()(
           const updatedAssets = state.assets.map((a) => (a.id === id ? { ...a, ...updates } : a));
           return {
             assets: updatedAssets,
-            rebalanceAlert: calcRebalance(updatedAssets, state.thresholdPct).needsRebalancing,
+            rebalanceAlert: calcRebalance(updatedAssets, state.thresholdPct, state.exchangeRate).needsRebalancing,
           };
         }),
 
@@ -92,7 +92,7 @@ export const useAssetStore = create<AssetStore>()(
           const updatedAssets = state.assets.filter((a) => a.id !== id);
           return {
             assets: updatedAssets,
-            rebalanceAlert: calcRebalance(updatedAssets, state.thresholdPct).needsRebalancing,
+            rebalanceAlert: calcRebalance(updatedAssets, state.thresholdPct, state.exchangeRate).needsRebalancing,
           };
         }),
 
@@ -103,7 +103,7 @@ export const useAssetStore = create<AssetStore>()(
           );
           return {
             assets: updatedAssets,
-            rebalanceAlert: calcRebalance(updatedAssets, state.thresholdPct).needsRebalancing,
+            rebalanceAlert: calcRebalance(updatedAssets, state.thresholdPct, state.exchangeRate).needsRebalancing,
           };
         }),
 
@@ -121,14 +121,14 @@ export const useAssetStore = create<AssetStore>()(
           });
           return {
             assets: updatedAssets,
-            rebalanceAlert: calcRebalance(updatedAssets, state.thresholdPct).needsRebalancing,
+            rebalanceAlert: calcRebalance(updatedAssets, state.thresholdPct, state.exchangeRate).needsRebalancing,
           };
         }),
 
       setThreshold: (pct) =>
         set((state) => ({
           thresholdPct: pct,
-          rebalanceAlert: calcRebalance(state.assets, pct).needsRebalancing,
+          rebalanceAlert: calcRebalance(state.assets, pct, state.exchangeRate).needsRebalancing,
         })),
 
       recordSnapshot: () =>
@@ -170,5 +170,6 @@ export const selectTotalCurrentValue = (assets: Asset[]) =>
 /** 리밸런싱 계산 결과 전체. 컴포넌트에서 calcRebalance를 직접 호출하는 대신 사용 */
 export const selectRebalanceSummary = (
   assets: Asset[],
-  thresholdPct: number
-): RebalanceSummary => calcRebalance(assets, thresholdPct);
+  thresholdPct: number,
+  exchangeRate = 1
+): RebalanceSummary => calcRebalance(assets, thresholdPct, exchangeRate);

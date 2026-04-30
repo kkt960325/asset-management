@@ -86,8 +86,8 @@ function statusBadge(
 // ── 메인 컴포넌트 ─────────────────────────────────────────────────────────────
 
 export default function AssetTable() {
-  const { assets, thresholdPct, updateShares, updateAsset, removeAsset } = useAssetStore();
-  const summary = selectRebalanceSummary(assets, thresholdPct);
+  const { assets, thresholdPct, updateShares, updateAsset, removeAsset, exchangeRate } = useAssetStore();
+  const summary = selectRebalanceSummary(assets, thresholdPct, exchangeRate);
   const resultMap = Object.fromEntries(summary.results.map((r) => [r.id, r]));
 
   const [editing, setEditing] = useState<{ id: string; value: string } | null>(null);
@@ -258,10 +258,21 @@ export default function AssetTable() {
                   </td>
 
                   {/* 평가금액 */}
-                  <td className="px-4 py-3.5 whitespace-nowrap text-right">
-                    <span className="font-mono text-xs text-[#e2e8f8]">
-                      {fmtValue(asset.currentValue, asset.currency)}
-                    </span>
+                  <td className="px-4 py-3.5 text-right">
+                    {asset.currentValue && asset.currentValue > 0 ? (
+                      <div className="flex flex-col items-end gap-0.5">
+                        <span className="font-mono text-xs text-[#e2e8f8]">
+                          {fmtValue(asset.currentValue, asset.currency)}
+                        </span>
+                        <span className="font-mono text-[10px] text-[#3a4a6a]">
+                          {asset.currency === "USD"
+                            ? `(₩${Math.round(asset.currentValue * exchangeRate).toLocaleString("ko-KR")})`
+                            : `($${(asset.currentValue / exchangeRate).toLocaleString("en-US", { maximumFractionDigits: 0 })})`}
+                        </span>
+                      </div>
+                    ) : (
+                      <span className="font-mono text-xs text-[#3a4a6a]">—</span>
+                    )}
                   </td>
 
                   {/* 현재비중 */}
@@ -351,6 +362,7 @@ export default function AssetTable() {
                       <RebalanceCell
                         asset={asset}
                         result={result}
+                        exchangeRate={exchangeRate}
                         onShowTooltip={(id, x, y) => setTooltip({ id, x, y })}
                         onHideTooltip={() => setTooltip(null)}
                       />
@@ -411,7 +423,8 @@ export default function AssetTable() {
         const asset = sorted.find((a) => a.id === tooltip.id);
         const result = asset ? resultMap[asset.id] : null;
         if (!asset || !result || result.rebalanceAmount >= 0) return null;
-        const sellValue = Math.abs(result.rebalanceAmount);
+        const absKrw = Math.abs(result.rebalanceAmount);
+        const sellValue = asset.currency === "USD" ? absKrw / exchangeRate : absKrw;
         const tax = estimateSellTax(sellValue, asset.category, asset.currency ?? "KRW");
         return (
           <TaxTooltip
@@ -432,20 +445,24 @@ export default function AssetTable() {
 type RebalanceCellProps = {
   asset: Asset;
   result: AssetRebalanceResult;
+  exchangeRate: number;
   onShowTooltip: (id: string, x: number, y: number) => void;
   onHideTooltip: () => void;
 };
 
-function RebalanceCell({ asset, result, onShowTooltip, onHideTooltip }: RebalanceCellProps) {
+function RebalanceCell({ asset, result, exchangeRate, onShowTooltip, onHideTooltip }: RebalanceCellProps) {
   const isSell = result.rebalanceAmount < 0;
-  const amount = Math.abs(result.rebalanceAmount);
+  // rebalanceAmount is KRW-normalized; convert back to asset currency for display
+  const absKrw = Math.abs(result.rebalanceAmount);
+  const amount = asset.currency === "USD" ? absKrw / exchangeRate : absKrw;
+  const amountCurrency = asset.currency ?? "KRW";
   const tax = isSell
-    ? estimateSellTax(amount, asset.category, asset.currency ?? "KRW")
+    ? estimateSellTax(amount, asset.category, amountCurrency)
     : null;
 
   const amtDisplay = isSell
-    ? `-${fmtValue(amount, asset.currency)}`
-    : `+${fmtValue(amount, asset.currency)}`;
+    ? `-${fmtValue(amount, amountCurrency)}`
+    : `+${fmtValue(amount, amountCurrency)}`;
 
   return (
     <div className="flex flex-col gap-0.5">

@@ -11,7 +11,7 @@ type Props = {
 
 export default function PortfolioSummary({ onRefresh, loading, error, lastUpdated }: Props) {
   const { assets, thresholdPct, rebalanceAlert, setThreshold, exchangeRate } = useAssetStore();
-  const summary = selectRebalanceSummary(assets, thresholdPct);
+  const summary = selectRebalanceSummary(assets, thresholdPct, exchangeRate);
   const alertCount = summary.results.filter((r) => r.needsRebalancing).length;
   const totalTargetPct = selectTotalTargetRatio(assets);
 
