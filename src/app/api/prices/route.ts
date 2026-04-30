@@ -165,6 +165,33 @@ async function fetchNaver(
   }
 }
 
+// ── Binance 현재가 조회 (Crypto Yahoo 실패 시 폴백) ──────────────────────────
+// "BTC-USD" → BTCUSDT, "TAO-USD" → TAOUSDT 변환 후 REST API 호출
+async function fetchCryptoBinance(
+  ticker: string
+): Promise<{ ticker: string; price: number | null; currency: string }> {
+  const base = ticker.replace(/-USD$/i, "").toUpperCase();
+  const symbol = `${base}USDT`;
+  try {
+    const res = await fetch(
+      `https://api.binance.com/api/v3/ticker/price?symbol=${symbol}`,
+      { cache: "no-store" }
+    );
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const data: any = await res.json();
+    const price = parseFloat(data.price);
+    if (!isNaN(price) && price > 0) return { ticker, price, currency: "USD" };
+    throw new Error("invalid price");
+  } catch (err) {
+    console.warn(
+      `[binance] ${ticker}(${symbol}) 조회 실패:`,
+      err instanceof Error ? err.message : String(err)
+    );
+    return { ticker, price: null, currency: "USD" };
+  }
+}
+
 // ── Route Handler ─────────────────────────────────────────────────────────────
 export async function GET(req: NextRequest) {
   const raw = req.nextUrl.searchParams.get("tickers") ?? "";
@@ -207,6 +234,24 @@ export async function GET(req: NextRequest) {
   }
 
   const exchangeRate = rawPrices[USDKRW_TICKER]?.price ?? USDKRW_FALLBACK;
+
+  // ── Crypto 폴백: Yahoo 실패한 -USD 티커 → Binance 재시도 ──────────────────
+  const cryptoRetry = yahooFetchList.filter(
+    (t) => t.endsWith("-USD") && !rawPrices[t]
+  );
+  if (cryptoRetry.length > 0) {
+    const binanceResults = await Promise.allSettled(
+      cryptoRetry.map(fetchCryptoBinance)
+    );
+    for (const r of binanceResults) {
+      if (r.status === "fulfilled" && r.value.price !== null) {
+        rawPrices[r.value.ticker] = {
+          price: r.value.price,
+          currency: r.value.currency,
+        };
+      }
+    }
+  }
 
   // GC=F: USD/oz → KRW/g
   // 예) $3,300/oz ÷ 31.1035 g/oz = $106.1/g × 1,400 KRW/USD = ₩148,526/g

@@ -194,11 +194,14 @@ export default function AssetTable() {
               const isEditing = editing?.id === asset.id;
               const isEditingRatio = editingRatio?.id === asset.id;
               const isDeleting = deletingId === asset.id;
-              const devStyle = result
+              const hasPriceData = asset.currentValue !== undefined;
+              const devStyle = result && hasPriceData
                 ? deviationStyle(result.deviationPct, thresholdPct)
                 : { text: "text-[#3a4a6a]", bg: "" };
-              const status = result
+              const status = result && hasPriceData
                 ? statusBadge(result, thresholdPct)
+                : asset.currentValue === undefined
+                ? { label: "시세없음", cls: "text-[#3a4a6a] bg-[#0c1121] border border-[#1a2540]" }
                 : { label: "—", cls: "text-[#3a4a6a]" };
 
               return (
@@ -334,28 +337,28 @@ export default function AssetTable() {
                     ) : (
                       <button
                         onClick={() => startEditRatio(asset)}
-                        title="목표비중 편집"
-                        className="group flex items-center gap-1.5 hover:opacity-100"
+                        title="클릭하여 목표비중 입력"
+                        className="group flex items-center justify-between gap-2 w-full px-2 py-1 rounded border border-transparent hover:border-violet-500/30 hover:bg-violet-500/5 transition-all"
                       >
                         {asset.targetRatio > 0 ? (
-                          <span className="font-mono text-xs text-[#e2e8f8] group-hover:text-violet-400 transition-colors">
+                          <span className="font-mono text-xs text-[#e2e8f8] group-hover:text-violet-300 transition-colors">
                             {asset.targetRatio.toFixed(1)}%
                           </span>
                         ) : (
-                          <span className="font-mono text-xs text-[#3a4a6a] group-hover:text-violet-400 transition-colors">
-                            미설정
+                          <span className="font-mono text-xs text-[#3a4a6a] group-hover:text-violet-400 transition-colors italic">
+                            클릭하여 설정
                           </span>
                         )}
-                        <span className="opacity-0 group-hover:opacity-60 transition-opacity">
+                        <span className="opacity-0 group-hover:opacity-80 transition-opacity text-violet-400 flex-shrink-0">
                           <PencilTinyIcon />
                         </span>
                       </button>
                     )}
                   </td>
 
-                  {/* 괴리율 */}
+                  {/* 괴리율 — 시세 미조회 종목은 표시 안 함 (0원으로 매수 지시 방지) */}
                   <td className="px-4 py-3.5 whitespace-nowrap">
-                    {result && asset.targetRatio > 0 ? (
+                    {result && asset.targetRatio > 0 && asset.currentValue !== undefined ? (
                       <span
                         className={`inline-block font-mono text-xs px-1.5 py-0.5 rounded ${devStyle.bg} ${devStyle.text}`}
                       >
@@ -367,9 +370,9 @@ export default function AssetTable() {
                     )}
                   </td>
 
-                  {/* 리밸런싱 */}
+                  {/* 리밸런싱 — 시세 미조회 종목은 표시 안 함 (0원으로 매수 지시 방지) */}
                   <td className="px-4 py-3.5 whitespace-nowrap">
-                    {result && asset.targetRatio > 0 ? (
+                    {result && asset.targetRatio > 0 && asset.currentValue !== undefined ? (
                       <RebalanceCell
                         asset={asset}
                         result={result}

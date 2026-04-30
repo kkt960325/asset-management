@@ -23,17 +23,28 @@ export const YAHOO_TICKER_MAP: Record<string, string> = {
 /** 시세 조회 대상에서 제외할 카테고리 (잔액 = 평가금액) */
 const NON_MARKET_CATEGORIES = new Set(["주택청약", "IRP"]);
 
+type AssetForPrice = { ticker: string; category: string };
+
 /**
- * 내부 ticker 배열의 현재가와 실시간 환율을 Route Handler(/api/prices)를 통해 조회한다.
+ * 자산 배열의 현재가와 실시간 환율을 Route Handler(/api/prices)를 통해 조회한다.
+ * Crypto 카테고리는 Yahoo Finance 형식(-USD 접미사)으로 자동 변환된다.
  *
  * @returns `{ priceMap, exchangeRate }` — priceMap은 조회 성공한 종목만 포함
  */
-export async function fetchAssetPrices(tickers: string[]): Promise<{
+export async function fetchAssetPrices(marketAssets: AssetForPrice[]): Promise<{
   priceMap: Record<string, PriceData>;
   exchangeRate: number;
 }> {
   const internalToYahoo: Record<string, string> = Object.fromEntries(
-    tickers.map((t) => [t, YAHOO_TICKER_MAP[t] ?? t])
+    marketAssets.map(({ ticker, category }) => {
+      const mapped = YAHOO_TICKER_MAP[ticker];
+      if (mapped) return [ticker, mapped];
+      // Crypto: "BTC" → "BTC-USD", "BTC-USD" → "BTC-USD" (이미 있으면 그대로)
+      if (category === "Crypto") {
+        return [ticker, ticker.includes("-") ? ticker : `${ticker}-USD`];
+      }
+      return [ticker, ticker];
+    })
   );
   const yahooToInternal: Record<string, string> = Object.fromEntries(
     Object.entries(internalToYahoo).map(([internal, yahoo]) => [yahoo, internal])
@@ -72,11 +83,11 @@ export function useAssetPrices() {
     setLoading(true);
     setError(null);
     try {
-      const marketTickers = assets
+      const marketAssets = assets
         .filter((a) => !NON_MARKET_CATEGORIES.has(a.category))
-        .map((a) => a.ticker);
+        .map((a) => ({ ticker: a.ticker, category: a.category }));
 
-      const { priceMap, exchangeRate } = await fetchAssetPrices(marketTickers);
+      const { priceMap, exchangeRate } = await fetchAssetPrices(marketAssets);
       updatePrices(priceMap);
       setExchangeRate(exchangeRate);
       recordSnapshot();
