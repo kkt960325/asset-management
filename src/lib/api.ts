@@ -36,6 +36,7 @@ export async function fetchAssetPrices(marketAssets: AssetForPrice[]): Promise<{
   priceMap: Record<string, PriceData>;
   exchangeRate: number;
   failed: string[];
+  mock?: boolean;
 }> {
   const internalToYahoo: Record<string, string> = Object.fromEntries(
     marketAssets.map(({ ticker, category }) => {
@@ -60,7 +61,8 @@ export async function fetchAssetPrices(marketAssets: AssetForPrice[]): Promise<{
   const res = await fetch(`/api/prices?${params}`);
   if (!res.ok) throw new Error(`가격 조회 실패: HTTP ${res.status}`);
 
-  const { prices: rawPrices, exchangeRate, failed = [] }: PricesApiResponse = await res.json();
+  const { prices: rawPrices, exchangeRate, failed = [], mock }: PricesApiResponse = await res.json();
+  if (mock) console.warn("[api] ⚠ Yahoo Finance 차단 — Mock 데이터 사용 중");
 
   // Yahoo 심볼 → 내부 ticker로 역매핑
   const priceMap: Record<string, PriceData> = Object.fromEntries(
@@ -76,7 +78,7 @@ export async function fetchAssetPrices(marketAssets: AssetForPrice[]): Promise<{
     sanitized[k.endsWith("-USD") ? k.replace(/-USD$/, "") : k] = v;
   }
 
-  return { priceMap: sanitized, exchangeRate, failed };
+  return { priceMap: sanitized, exchangeRate, failed, mock };
 }
 
 /**
@@ -89,6 +91,7 @@ export function useAssetPrices() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [lastUpdated, setLastUpdated] = useState<Date | null>(null);
+  const [usingMock, setUsingMock] = useState(false);
 
   const refresh = useCallback(async () => {
     setLoading(true);
@@ -98,15 +101,18 @@ export function useAssetPrices() {
         .filter((a) => !NON_MARKET_CATEGORIES.has(a.category))
         .map((a) => ({ ticker: a.ticker, category: a.category }));
 
-      const { priceMap, exchangeRate, failed } = await fetchAssetPrices(marketAssets);
+      const { priceMap, exchangeRate, failed, mock } = await fetchAssetPrices(marketAssets);
       updatePrices(priceMap);
       setExchangeRate(exchangeRate);
       recordSnapshot();
       const now = new Date();
       setLastUpdated(now);
       setLastPriceUpdate(now.getTime());
+      setUsingMock(!!mock);
       // Surface partial failures as a soft warning (non-blocking)
-      if (failed.length > 0) {
+      if (mock) {
+        setError("Yahoo Finance 차단 감지 — Mock 데이터로 표시 중 (실제 시세 아님)");
+      } else if (failed.length > 0) {
         setError(`일부 시세 조회 실패: ${failed.join(", ")} — 나머지 자산은 정상 업데이트됨`);
       }
     } catch (e) {
@@ -117,5 +123,5 @@ export function useAssetPrices() {
     }
   }, [assets, updatePrices, setExchangeRate, recordSnapshot, setLastPriceUpdate]);
 
-  return { refresh, loading, error, lastUpdated };
+  return { refresh, loading, error, lastUpdated, usingMock };
 }

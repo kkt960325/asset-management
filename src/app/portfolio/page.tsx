@@ -7,9 +7,10 @@ import PortfolioChart from "@/components/portfolio/PortfolioChart";
 import PortfolioPieChart from "@/components/portfolio/PortfolioPieChart";
 import AssetTable from "@/components/portfolio/AssetTable";
 import AddAssetForm from "@/components/portfolio/AddAssetForm";
+import SyncButton from "@/components/portfolio/SyncButton";
 
 export default function PortfolioPage() {
-  const { refresh, loading, error, lastUpdated } = useAssetPrices();
+  const { refresh, loading, error, lastUpdated, usingMock } = useAssetPrices();
 
   // 마운트 시 1회 시세 조회
   // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -29,6 +30,9 @@ export default function PortfolioPage() {
       </div>
       <AssetTable loading={loading} />
       <AddAssetForm />
+
+      {/* Fixed sync button — always visible, top-right corner */}
+      <SyncButton onSync={refresh} loading={loading} usingMock={usingMock} />
     </div>
   );
 }

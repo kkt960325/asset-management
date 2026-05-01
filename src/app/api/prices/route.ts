@@ -4,7 +4,43 @@ import * as cheerio from "cheerio";
 
 export const runtime = "nodejs";
 
-const yf = new YahooFinance();
+const yf = new YahooFinance({ suppressNotices: ["yahooSurvey"] });
+
+// ── Mock prices (fallback when Yahoo Finance is blocked from cloud IPs) ───────
+// Used when ALL Yahoo tickers return null (e.g. Vercel → Yahoo 429 block).
+// Values are intentionally approximate; UI shows "MOCK" badge when active.
+const MOCK_PRICES: Record<string, { price: number; currency: string }> = {
+  // US stocks / ETFs
+  "AAPL":   { price: 207.00, currency: "USD" },
+  "MSFT":   { price: 415.00, currency: "USD" },
+  "NVDA":   { price: 875.00, currency: "USD" },
+  "TSLA":   { price: 175.00, currency: "USD" },
+  "AMZN":   { price: 185.00, currency: "USD" },
+  "GOOGL":  { price: 170.00, currency: "USD" },
+  "GOOG":   { price: 170.00, currency: "USD" },
+  "META":   { price: 510.00, currency: "USD" },
+  "NFLX":   { price: 620.00, currency: "USD" },
+  "SPY":    { price: 550.00, currency: "USD" },
+  "QQQ":    { price: 467.00, currency: "USD" },
+  "VOO":    { price: 503.00, currency: "USD" },
+  "VTI":    { price: 268.00, currency: "USD" },
+  "ARKK":   { price:  47.00, currency: "USD" },
+  "COPX":   { price:  42.00, currency: "USD" },
+  "GLD":    { price: 230.00, currency: "USD" },
+  "SLV":    { price:  27.00, currency: "USD" },
+  "TLT":    { price:  88.00, currency: "USD" },
+  "BRK.B":  { price: 460.00, currency: "USD" },
+  "JPM":    { price: 220.00, currency: "USD" },
+  "V":      { price: 280.00, currency: "USD" },
+  "MA":     { price: 490.00, currency: "USD" },
+  "DIS":    { price: 113.00, currency: "USD" },
+  "AMD":    { price: 160.00, currency: "USD" },
+  "INTC":   { price:  30.00, currency: "USD" },
+  // Gold futures (USD/oz → KRW/g conversion happens downstream)
+  "GC=F":   { price: 3_300.00, currency: "USD" },
+  // FX
+  "USDKRW=X": { price: 1_400, currency: "KRW" },
+};
 
 // ── 상수 ──────────────────────────────────────────────────────────────────────
 const GOLD_COMEX      = "GC=F";
@@ -26,6 +62,8 @@ export type PricesApiResponse = {
   exchangeRate: number;
   /** 가격을 가져오지 못한 티커 목록 (진단용) */
   failed: string[];
+  /** Yahoo Finance 차단 등으로 Mock 데이터를 사용 중이면 true */
+  mock?: boolean;
 };
 
 // ── Yahoo Finance 단일 종목 조회 ──────────────────────────────────────────────
@@ -37,16 +75,21 @@ async function fetchYahoo(
   try {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const quote = (await yf.quote(ticker)) as any;
+    const price = (quote?.regularMarketPrice as number | undefined) ?? null;
+    if (price !== null) {
+      console.log(`[yahoo] ✓ ${ticker} = ${price} ${quote?.currency ?? "USD"}`);
+    } else {
+      console.warn(`[yahoo] ✗ ${ticker} — regularMarketPrice null. Raw keys: ${Object.keys(quote ?? {}).join(",")}`);
+    }
     return {
       ticker,
-      price: (quote?.regularMarketPrice as number | undefined) ?? null,
+      price,
       currency: (quote?.currency as string | undefined) ?? "USD",
     };
   } catch (err) {
-    console.warn(
-      `[yahoo] ${ticker} 조회 실패:`,
-      err instanceof Error ? err.message : String(err)
-    );
+    const msg = err instanceof Error ? err.message : String(err);
+    const stack = err instanceof Error ? err.stack?.split("\n").slice(0, 4).join(" | ") : "";
+    console.error(`[yahoo] ✗ ${ticker} 조회 실패: ${msg} | stack: ${stack}`);
     return { ticker, price: null, currency: "USD" };
   }
 }
@@ -364,6 +407,28 @@ export async function GET(req: NextRequest) {
     }
   }
 
+  // ── Mock fallback: Yahoo 전체 차단 감지 ───────────────────────────────────
+  // yahooOnlyTickers(FX, 미국주식, 금선물) 중 단 하나도 성공하지 못했으면
+  // MOCK_PRICES에서 채워서 화면에 숫자가 뜨도록 보장함.
+  // 주의: USDKRW=X mock=1400이 사용되므로 exchangeRate 계산에도 반영됨.
+  const yahooSuccessCount = yahooFetchList.filter(
+    (t) => rawPrices[t] !== undefined
+  ).length;
+  let usingMock = false;
+
+  if (yahooSuccessCount === 0 && yahooFetchList.length > 0) {
+    usingMock = true;
+    console.error(
+      `[prices] ⚠ Yahoo Finance 전체 차단 — ${yahooFetchList.length}개 티커 Mock 데이터 대체 적용`
+    );
+    for (const ticker of yahooFetchList) {
+      if (!rawPrices[ticker] && MOCK_PRICES[ticker]) {
+        rawPrices[ticker] = MOCK_PRICES[ticker];
+        console.log(`[prices] mock → ${ticker} = ${MOCK_PRICES[ticker].price}`);
+      }
+    }
+  }
+
   const exchangeRate = rawPrices[USDKRW_TICKER]?.price ?? USDKRW_FALLBACK;
 
   // GC=F: USD/oz → KRW/g
@@ -400,5 +465,5 @@ export async function GET(req: NextRequest) {
   if (failed.length > 0) {
     console.warn(`[prices] 가격 조회 실패 티커: [${failed.join(", ")}]`);
   }
-  return NextResponse.json<PricesApiResponse>({ prices, exchangeRate, failed });
+  return NextResponse.json<PricesApiResponse>({ prices, exchangeRate, failed, mock: usingMock || undefined });
 }
