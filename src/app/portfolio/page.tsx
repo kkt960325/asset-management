@@ -27,7 +27,7 @@ export default function PortfolioPage() {
         <PortfolioPieChart />
         <PortfolioChart />
       </div>
-      <AssetTable />
+      <AssetTable loading={loading} />
       <AddAssetForm />
     </div>
   );

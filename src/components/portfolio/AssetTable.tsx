@@ -66,7 +66,7 @@ function statusBadge(result: AssetRebalanceResult, threshold: number): { label: 
 
 // ── Main component ────────────────────────────────────────────────────────────
 
-export default function AssetTable() {
+export default function AssetTable({ loading = false }: { loading?: boolean }) {
   const { assets, thresholdPct, updateShares, updateAsset, removeAsset, updateManualValue, exchangeRate } =
     useAssetStore();
   const summary = selectRebalanceSummary(assets, thresholdPct, exchangeRate);
@@ -305,9 +305,17 @@ export default function AssetTable() {
                             : `($${(asset.currentValue / exchangeRate).toLocaleString("en-US", { maximumFractionDigits: 0 })})`}
                         </span>
                       </div>
+                    ) : loading ? (
+                      // Skeleton shimmer while fetching
+                      <div className="flex flex-col items-end gap-1">
+                        <div className="h-3 w-20 rounded-sm animate-pulse"
+                          style={{ background: "rgba(0,212,255,0.08)" }} />
+                        <div className="h-2.5 w-14 rounded-sm animate-pulse"
+                          style={{ background: "rgba(0,212,255,0.05)", animationDelay: "150ms" }} />
+                      </div>
                     ) : (
                       <span className="font-mono text-xs" style={{ color: "rgba(0,212,255,0.2)" }}>
-                        {["미국주식", "해외주식", "해외ETF", "Crypto"].includes(asset.category) ? "$0.00" : "₩0"}
+                        —
                       </span>
                     )}
                   </td>

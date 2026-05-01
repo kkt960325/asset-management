@@ -24,6 +24,8 @@ export type PricesApiResponse = {
   prices: Record<string, { price: number; currency: string }>;
   /** 실시간 USD/KRW 환율. 조회 실패 시 폴백 값 반환 */
   exchangeRate: number;
+  /** 가격을 가져오지 못한 티커 목록 (진단용) */
+  failed: string[];
 };
 
 // ── Yahoo Finance 단일 종목 조회 ──────────────────────────────────────────────
@@ -319,6 +321,7 @@ export async function GET(req: NextRequest) {
     return NextResponse.json<PricesApiResponse>({
       prices: {},
       exchangeRate: USDKRW_FALLBACK,
+      failed: [],
     });
   }
 
@@ -377,15 +380,25 @@ export async function GET(req: NextRequest) {
   // Crypto 티커는 -USD 접미사를 제거해서 반환 (BTC-USD → BTC)
   // → 프론트엔드 ticker("BTC")와 키가 정확히 일치하도록 보장
   const prices: Record<string, { price: number; currency: string }> = {};
+  const failed: string[] = [];
+
   for (const ticker of tickers) {
-    if (!rawPrices[ticker]) continue;
+    if (ticker === USDKRW_TICKER) continue;
     const outKey =
       ticker.endsWith("-USD") && ticker !== USDKRW_TICKER
         ? ticker.replace(/-USD$/, "")
         : ticker;
-    prices[outKey] = rawPrices[ticker];
+    if (!rawPrices[ticker]) {
+      failed.push(outKey);
+      console.warn(`[prices] 가격 없음: ${ticker}`);
+    } else {
+      prices[outKey] = rawPrices[ticker];
+    }
   }
 
   console.log(`[prices] 최종 응답 keys: [${Object.keys(prices).join(", ")}]`);
-  return NextResponse.json<PricesApiResponse>({ prices, exchangeRate });
+  if (failed.length > 0) {
+    console.warn(`[prices] 가격 조회 실패 티커: [${failed.join(", ")}]`);
+  }
+  return NextResponse.json<PricesApiResponse>({ prices, exchangeRate, failed });
 }

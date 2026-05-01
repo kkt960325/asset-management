@@ -136,8 +136,10 @@ export const useAssetStore = create<AssetStore>()(
       updatePrices: (prices) =>
         set((state) => {
           const updated = state.assets.map((a) => {
-            if (a.manualValue !== undefined) return a;
+            // Skip categories that are always manually valued — no market price lookup
+            if (MANUAL_CATEGORIES.has(a.category)) return a;
             const data = prices[a.ticker] ?? prices[`${a.ticker}-USD`];
+            // No new price → keep existing currentValue (preserves last-known price)
             if (!data) return a;
             return {
               ...a,

@@ -35,6 +35,7 @@ type AssetForPrice = { ticker: string; category: string };
 export async function fetchAssetPrices(marketAssets: AssetForPrice[]): Promise<{
   priceMap: Record<string, PriceData>;
   exchangeRate: number;
+  failed: string[];
 }> {
   const internalToYahoo: Record<string, string> = Object.fromEntries(
     marketAssets.map(({ ticker, category }) => {
@@ -59,7 +60,7 @@ export async function fetchAssetPrices(marketAssets: AssetForPrice[]): Promise<{
   const res = await fetch(`/api/prices?${params}`);
   if (!res.ok) throw new Error(`가격 조회 실패: HTTP ${res.status}`);
 
-  const { prices: rawPrices, exchangeRate }: PricesApiResponse = await res.json();
+  const { prices: rawPrices, exchangeRate, failed = [] }: PricesApiResponse = await res.json();
 
   // Yahoo 심볼 → 내부 ticker로 역매핑
   const priceMap: Record<string, PriceData> = Object.fromEntries(
@@ -75,7 +76,7 @@ export async function fetchAssetPrices(marketAssets: AssetForPrice[]): Promise<{
     sanitized[k.endsWith("-USD") ? k.replace(/-USD$/, "") : k] = v;
   }
 
-  return { priceMap: sanitized, exchangeRate };
+  return { priceMap: sanitized, exchangeRate, failed };
 }
 
 /**
@@ -97,13 +98,17 @@ export function useAssetPrices() {
         .filter((a) => !NON_MARKET_CATEGORIES.has(a.category))
         .map((a) => ({ ticker: a.ticker, category: a.category }));
 
-      const { priceMap, exchangeRate } = await fetchAssetPrices(marketAssets);
+      const { priceMap, exchangeRate, failed } = await fetchAssetPrices(marketAssets);
       updatePrices(priceMap);
       setExchangeRate(exchangeRate);
       recordSnapshot();
       const now = new Date();
       setLastUpdated(now);
       setLastPriceUpdate(now.getTime());
+      // Surface partial failures as a soft warning (non-blocking)
+      if (failed.length > 0) {
+        setError(`일부 시세 조회 실패: ${failed.join(", ")} — 나머지 자산은 정상 업데이트됨`);
+      }
     } catch (e) {
       // Store prices are NOT cleared — existing values remain as last-known data
       setError(e instanceof Error ? e.message : "알 수 없는 오류가 발생했습니다.");
