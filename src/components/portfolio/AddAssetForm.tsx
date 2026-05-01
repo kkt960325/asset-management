@@ -70,12 +70,12 @@ export default function AddAssetForm() {
   }
 
   return (
-    <div className="rounded-xl border border-[#1a2540] bg-[#0c1121] overflow-hidden animate-fade-in-up">
+    <div className="rounded-xl border border-zinc-800 bg-zinc-900/80 backdrop-blur-sm overflow-hidden animate-fade-in-up">
       {/* 헤더 */}
-      <div className="px-5 py-3.5 border-b border-[#1a2540] flex items-center justify-between">
+      <div className="px-5 py-3.5 border-b border-zinc-800 flex items-center justify-between">
         <div className="flex items-center gap-2">
           <span className="w-1.5 h-1.5 rounded-full bg-emerald-400" />
-          <span className="text-xs font-semibold uppercase tracking-widest text-[#8392b0]">
+          <span className="text-xs font-semibold uppercase tracking-widest text-zinc-400">
             새로운 종목 추가
           </span>
           {isFixed && (
@@ -87,20 +87,20 @@ export default function AddAssetForm() {
 
         {/* 목표 배분 현황 뱃지 */}
         <div className="flex items-center gap-2">
-          <span className="text-[10px] text-[#3a4a6a]">현재 배분 합계</span>
+          <span className="text-[10px] text-zinc-600">현재 배분 합계</span>
           <span
             className={`font-mono text-[11px] font-bold px-2 py-0.5 rounded-md ${
               Math.abs(currentTotalPct - 100) < 0.01
                 ? "text-emerald-400 bg-emerald-500/10"
                 : currentTotalPct > 100
                 ? "text-rose-400 bg-rose-500/10"
-                : "text-[#8392b0] bg-[#1a2540]"
+                : "text-zinc-400 bg-zinc-800"
             }`}
           >
             {currentTotalPct.toFixed(1)}%
           </span>
           {remaining > 0 && (
-            <span className="text-[10px] text-[#3a4a6a]">
+            <span className="text-[10px] text-zinc-600">
               잔여{" "}
               <span className="font-mono text-amber-400">{remaining.toFixed(1)}%</span>
             </span>
@@ -112,7 +112,7 @@ export default function AddAssetForm() {
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3">
           {/* 티커 / 자산명 */}
           <div className="flex flex-col gap-1.5">
-            <label className="text-[10px] uppercase tracking-widest text-[#3a4a6a] font-semibold">
+            <label className="text-[10px] uppercase tracking-widest text-zinc-600 font-semibold">
               {isFixed ? "자산명" : "티커"} <span className="text-rose-500">*</span>
             </label>
             <input
@@ -121,13 +121,13 @@ export default function AddAssetForm() {
               value={form.ticker}
               onChange={(e) => set("ticker", isFixed ? e.target.value : e.target.value.toUpperCase())}
               required
-              className="h-9 bg-[#111827] border border-[#1a2540] rounded-lg px-3 font-mono text-sm text-[#e2e8f8] placeholder-[#3a4a6a] focus:outline-none focus:border-sky-500/50 focus:bg-[#0d1828] transition-all"
+              className="h-9 bg-zinc-900 border border-zinc-800 rounded-lg px-3 font-mono text-sm text-zinc-100 placeholder-zinc-600 focus:outline-none focus:border-sky-500/50 focus:bg-zinc-950 transition-all"
             />
           </div>
 
           {/* 종목명 (고정 자산은 설명으로 활용) */}
           <div className="flex flex-col gap-1.5">
-            <label className="text-[10px] uppercase tracking-widest text-[#3a4a6a] font-semibold">
+            <label className="text-[10px] uppercase tracking-widest text-zinc-600 font-semibold">
               {isFixed ? "메모" : "종목명"}
             </label>
             <input
@@ -135,19 +135,19 @@ export default function AddAssetForm() {
               placeholder={isFixed ? "선택 입력" : "Apple Inc."}
               value={form.name}
               onChange={(e) => set("name", e.target.value)}
-              className="h-9 bg-[#111827] border border-[#1a2540] rounded-lg px-3 text-sm text-[#e2e8f8] placeholder-[#3a4a6a] focus:outline-none focus:border-sky-500/50 focus:bg-[#0d1828] transition-all"
+              className="h-9 bg-zinc-900 border border-zinc-800 rounded-lg px-3 text-sm text-zinc-100 placeholder-zinc-600 focus:outline-none focus:border-sky-500/50 focus:bg-zinc-950 transition-all"
             />
           </div>
 
           {/* 카테고리 */}
           <div className="flex flex-col gap-1.5">
-            <label className="text-[10px] uppercase tracking-widest text-[#3a4a6a] font-semibold">
+            <label className="text-[10px] uppercase tracking-widest text-zinc-600 font-semibold">
               카테고리
             </label>
             <select
               value={form.category}
               onChange={(e) => set("category", e.target.value as AssetCategory)}
-              className="h-9 bg-[#111827] border border-[#1a2540] rounded-lg px-3 text-sm text-[#e2e8f8] focus:outline-none focus:border-sky-500/50 focus:bg-[#0d1828] transition-all appearance-none cursor-pointer"
+              className="h-9 bg-zinc-900 border border-zinc-800 rounded-lg px-3 text-sm text-zinc-100 focus:outline-none focus:border-sky-500/50 focus:bg-zinc-950 transition-all appearance-none cursor-pointer"
             >
               {CATEGORIES.map((c) => (
                 <option key={c} value={c}>{c}</option>
@@ -157,7 +157,7 @@ export default function AddAssetForm() {
 
           {/* 보유수량 (시장 자산) / 평가금액 (고정 자산) */}
           <div className="flex flex-col gap-1.5">
-            <label className="text-[10px] uppercase tracking-widest text-[#3a4a6a] font-semibold">
+            <label className="text-[10px] uppercase tracking-widest text-zinc-600 font-semibold">
               {isFixed ? "평가금액 (₩)" : "보유수량"} <span className="text-rose-500">*</span>
             </label>
             {isFixed ? (
@@ -168,7 +168,7 @@ export default function AddAssetForm() {
                 value={form.manualValue}
                 onChange={(e) => set("manualValue", e.target.value)}
                 required
-                className="h-9 bg-[#111827] border border-teal-500/30 rounded-lg px-3 font-mono text-sm text-teal-300 placeholder-[#3a4a6a] focus:outline-none focus:border-teal-400/60 focus:bg-[#0d1828] transition-all"
+                className="h-9 bg-zinc-900 border border-teal-500/30 rounded-lg px-3 font-mono text-sm text-teal-300 placeholder-zinc-600 focus:outline-none focus:border-teal-400/60 focus:bg-zinc-950 transition-all"
               />
             ) : (
               <input
@@ -178,14 +178,14 @@ export default function AddAssetForm() {
                 value={form.shares}
                 onChange={(e) => set("shares", e.target.value)}
                 required
-                className="h-9 bg-[#111827] border border-[#1a2540] rounded-lg px-3 font-mono text-sm text-[#e2e8f8] placeholder-[#3a4a6a] focus:outline-none focus:border-sky-500/50 focus:bg-[#0d1828] transition-all"
+                className="h-9 bg-zinc-900 border border-zinc-800 rounded-lg px-3 font-mono text-sm text-zinc-100 placeholder-zinc-600 focus:outline-none focus:border-sky-500/50 focus:bg-zinc-950 transition-all"
               />
             )}
           </div>
 
           {/* 목표비중 + 제출 버튼 */}
           <div className="flex flex-col gap-1.5">
-            <label className="text-[10px] uppercase tracking-widest text-[#3a4a6a] font-semibold">
+            <label className="text-[10px] uppercase tracking-widest text-zinc-600 font-semibold">
               목표비중 (%)
             </label>
             <div className="flex gap-2">
@@ -197,10 +197,10 @@ export default function AddAssetForm() {
                 placeholder={remaining > 0 ? remaining.toFixed(1) : "0"}
                 value={form.targetRatio}
                 onChange={(e) => set("targetRatio", e.target.value)}
-                className={`h-9 flex-1 bg-[#111827] border rounded-lg px-3 font-mono text-sm text-[#e2e8f8] placeholder-[#3a4a6a] focus:outline-none transition-all ${
+                className={`h-9 flex-1 bg-zinc-900 border rounded-lg px-3 font-mono text-sm text-zinc-100 placeholder-zinc-600 focus:outline-none transition-all ${
                   wouldExceed
                     ? "border-rose-500/50 focus:border-rose-400"
-                    : "border-[#1a2540] focus:border-sky-500/50 focus:bg-[#0d1828]"
+                    : "border-zinc-800 focus:border-sky-500/50 focus:bg-zinc-950"
                 }`}
               />
               <button

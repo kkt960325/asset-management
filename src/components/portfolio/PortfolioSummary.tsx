@@ -1,6 +1,7 @@
 "use client";
 
 import { useAssetStore, selectRebalanceSummary, selectTotalTargetRatio } from "@/lib/store";
+import { TiltCard } from "@/components/ui/TiltCard";
 
 type Props = {
   onRefresh: () => void;
@@ -15,7 +16,6 @@ export default function PortfolioSummary({ onRefresh, loading, error, lastUpdate
   const alertCount = summary.results.filter((r) => r.needsRebalancing).length;
   const totalTargetPct = selectTotalTargetRatio(assets);
 
-  // ── 통화별 자산 합계 ──────────────────────────────────────────────────────────
   const totalKrw = assets
     .filter((a) => a.currency === "KRW")
     .reduce((s, a) => s + (a.currentValue ?? 0), 0);
@@ -24,13 +24,10 @@ export default function PortfolioSummary({ onRefresh, loading, error, lastUpdate
     .reduce((s, a) => s + (a.currentValue ?? 0), 0);
   const hasAnyValue = totalKrw > 0 || totalUsd > 0;
 
-  // ── 통합 환산 총액 ────────────────────────────────────────────────────────────
-  // USD → KRW 환산 포함 전체 합계 (exchangeRate = 0 방어)
   const rate = exchangeRate > 0 ? exchangeRate : 1_400;
   const totalKrwCombined = totalKrw + totalUsd * rate;
   const totalUsdCombined = totalUsd + totalKrw / rate;
 
-  // ── 목표 배분 상태 ────────────────────────────────────────────────────────────
   const targetPctStatus =
     Math.abs(totalTargetPct - 100) < 0.01
       ? ("ok" as const)
@@ -44,25 +41,24 @@ export default function PortfolioSummary({ onRefresh, loading, error, lastUpdate
     ok: "text-emerald-400",
     over: "text-rose-400",
     under: "text-amber-400",
-    none: "text-[#3a4a6a]",
+    none: "text-zinc-700",
   }[targetPctStatus];
 
   return (
     <div className="space-y-4 animate-fade-in-up">
-      {/* ── 상단 타이틀 줄 ───────────────────────────── */}
+      {/* 상단 타이틀 줄 */}
       <div className="flex items-center justify-between">
         <div>
           <p className="font-mono text-[10px] tracking-[0.3em] text-sky-400 uppercase mb-1">
             Portfolio Overview
           </p>
-          <h1 className="text-2xl font-bold text-[#e2e8f8] tracking-tight">포트폴리오</h1>
+          <h1 className="text-2xl font-bold text-zinc-100 tracking-tight">포트폴리오</h1>
         </div>
 
-        {/* 시세 갱신 버튼 */}
         <button
           onClick={onRefresh}
           disabled={loading}
-          className="flex items-center gap-2 px-4 py-2 rounded-lg border border-[#1a2540] bg-[#0c1121] text-xs font-semibold text-[#8392b0] hover:border-sky-500/40 hover:text-sky-400 transition-all disabled:opacity-40 disabled:cursor-not-allowed"
+          className="flex items-center gap-2 px-4 py-2 rounded-lg border border-zinc-800 bg-zinc-900 text-xs font-semibold text-zinc-400 hover:border-sky-500/40 hover:text-sky-400 transition-all disabled:opacity-40 disabled:cursor-not-allowed"
         >
           <svg
             className={`w-3.5 h-3.5 ${loading ? "animate-spin" : ""}`}
@@ -81,14 +77,14 @@ export default function PortfolioSummary({ onRefresh, loading, error, lastUpdate
         </button>
       </div>
 
-      {/* ── 에러 배너 ─────────────────────────────────── */}
+      {/* 에러 배너 */}
       {error && (
         <div className="px-4 py-2.5 rounded-lg border border-rose-500/30 bg-rose-500/10 text-rose-400 text-xs">
           {error}
         </div>
       )}
 
-      {/* ── 리밸런싱 알림 배너 ────────────────────────── */}
+      {/* 리밸런싱 알림 배너 */}
       {rebalanceAlert && (
         <div className="flex items-center gap-3 px-4 py-3 rounded-lg border border-amber-500/30 bg-amber-500/10">
           <span className="w-2 h-2 rounded-full bg-amber-400 animate-pulse-dot flex-shrink-0" />
@@ -98,117 +94,123 @@ export default function PortfolioSummary({ onRefresh, loading, error, lastUpdate
         </div>
       )}
 
-      {/* ── 스탯 카드 5개 ─────────────────────────────── */}
+      {/* 스탯 카드 5개 */}
       <div className="grid grid-cols-2 lg:grid-cols-5 gap-3">
-        {/* 통합 총액 KRW */}
-        <StatCard
-          label="전체 자산 총액 (KRW)"
-          value={loading ? "조회 중…" : fmtKrw(totalKrwCombined)}
-          sub={loading ? "시세 갱신 중" : "전체 자산 통합 환산"}
-          accent="sky"
-          detail={
-            !loading && hasAnyValue
-              ? `KRW ${fmtKrw(totalKrw)}  +  USD $${fmtUsdShort(totalUsd)} × ${Math.round(rate).toLocaleString("ko-KR")}`
-              : !loading && !hasAnyValue
-              ? "시세 갱신 후 표시됩니다"
-              : undefined
-          }
-        />
+        <TiltCard intensity={3}>
+          <StatCard
+            label="전체 자산 총액 (KRW)"
+            value={loading ? "조회 중…" : fmtKrw(totalKrwCombined)}
+            sub={loading ? "시세 갱신 중" : "전체 자산 통합 환산"}
+            accent="sky"
+            detail={
+              !loading && hasAnyValue
+                ? `KRW ${fmtKrw(totalKrw)}  +  USD $${fmtUsdShort(totalUsd)} × ${Math.round(rate).toLocaleString("ko-KR")}`
+                : !loading && !hasAnyValue
+                ? "시세 갱신 후 표시됩니다"
+                : undefined
+            }
+          />
+        </TiltCard>
 
-        {/* 통합 총액 USD */}
-        <StatCard
-          label="전체 자산 총액 (USD)"
-          value={loading ? "조회 중…" : `$${fmtUsd(totalUsdCombined)}`}
-          sub={loading ? "시세 갱신 중" : "전체 자산 통합 환산"}
-          accent="sky"
-          detail={
-            !loading && hasAnyValue
-              ? `USD $${fmtUsdShort(totalUsd)}  +  KRW ${fmtKrw(totalKrw)} ÷ ${Math.round(rate).toLocaleString("ko-KR")}`
-              : !loading && !hasAnyValue
-              ? "시세 갱신 후 표시됩니다"
-              : undefined
-          }
-        />
+        <TiltCard intensity={3}>
+          <StatCard
+            label="전체 자산 총액 (USD)"
+            value={loading ? "조회 중…" : `$${fmtUsd(totalUsdCombined)}`}
+            sub={loading ? "시세 갱신 중" : "전체 자산 통합 환산"}
+            accent="sky"
+            detail={
+              !loading && hasAnyValue
+                ? `USD $${fmtUsdShort(totalUsd)}  +  KRW ${fmtKrw(totalKrw)} ÷ ${Math.round(rate).toLocaleString("ko-KR")}`
+                : !loading && !hasAnyValue
+                ? "시세 갱신 후 표시됩니다"
+                : undefined
+            }
+          />
+        </TiltCard>
 
-        {/* 리밸런싱 필요 */}
-        <StatCard
-          label="리밸런싱 필요"
-          value={String(alertCount)}
-          sub={alertCount > 0 ? `±${thresholdPct}%p 임계치 초과` : "모든 종목 정상"}
-          accent={alertCount > 0 ? "amber" : "emerald"}
-          dot={alertCount > 0}
-        />
+        <TiltCard intensity={3}>
+          <StatCard
+            label="리밸런싱 필요"
+            value={String(alertCount)}
+            sub={alertCount > 0 ? `±${thresholdPct}%p 임계치 초과` : "모든 종목 정상"}
+            accent={alertCount > 0 ? "amber" : "emerald"}
+            dot={alertCount > 0}
+          />
+        </TiltCard>
 
-        {/* 목표비중 합계 */}
-        <StatCard
-          label="목표비중 합계"
-          value={`${totalTargetPct.toFixed(1)}%`}
-          sub={
-            targetPctStatus === "ok"
-              ? "100% 배분 완료"
-              : targetPctStatus === "over"
-              ? `${(totalTargetPct - 100).toFixed(1)}%p 초과 — 조정 필요`
-              : totalTargetPct === 0
-              ? "목표비중 미설정"
-              : `${(100 - totalTargetPct).toFixed(1)}%p 미배분`
-          }
-          accent={
-            targetPctStatus === "ok"
-              ? "emerald"
-              : targetPctStatus === "over"
-              ? "rose"
-              : totalTargetPct === 0
-              ? "sky"
-              : "amber"
-          }
-        />
+        <TiltCard intensity={3}>
+          <StatCard
+            label="목표비중 합계"
+            value={`${totalTargetPct.toFixed(1)}%`}
+            sub={
+              targetPctStatus === "ok"
+                ? "100% 배분 완료"
+                : targetPctStatus === "over"
+                ? `${(totalTargetPct - 100).toFixed(1)}%p 초과 — 조정 필요`
+                : totalTargetPct === 0
+                ? "목표비중 미설정"
+                : `${(100 - totalTargetPct).toFixed(1)}%p 미배분`
+            }
+            accent={
+              targetPctStatus === "ok"
+                ? "emerald"
+                : targetPctStatus === "over"
+                ? "rose"
+                : totalTargetPct === 0
+                ? "sky"
+                : "amber"
+            }
+          />
+        </TiltCard>
 
         {/* 임계치 설정 */}
-        <div className="rounded-xl border border-[#1a2540] bg-[#0c1121] p-4 flex flex-col gap-2">
-          <p className="text-[10px] uppercase tracking-widest text-[#8392b0] font-semibold">
-            알림 임계치
-          </p>
-          <div className="flex items-center gap-2 mt-auto">
-            <input
-              type="range"
-              min={1}
-              max={10}
-              value={thresholdPct}
-              onChange={(e) => setThreshold(Number(e.target.value))}
-              className="flex-1 accent-sky-400 h-1.5"
-            />
-            <span className="font-mono text-base font-bold text-sky-400 w-10 text-right">
-              {thresholdPct}%p
-            </span>
+        <TiltCard intensity={3}>
+          <div className="h-full rounded-xl border border-zinc-800 bg-zinc-900/80 backdrop-blur-sm p-4 flex flex-col gap-2">
+            <p className="text-[10px] uppercase tracking-widest text-zinc-400 font-semibold">
+              알림 임계치
+            </p>
+            <div className="flex items-center gap-2 mt-auto">
+              <input
+                type="range"
+                min={1}
+                max={10}
+                value={thresholdPct}
+                onChange={(e) => setThreshold(Number(e.target.value))}
+                className="flex-1 accent-sky-400 h-1.5"
+              />
+              <span className="font-mono text-base font-bold text-sky-400 w-10 text-right">
+                {thresholdPct}%p
+              </span>
+            </div>
+            <p className="text-[10px] text-zinc-700">이탈 시 리밸런싱 알림 기준</p>
           </div>
-          <p className="text-[10px] text-[#3a4a6a]">이탈 시 리밸런싱 알림 기준</p>
-        </div>
+        </TiltCard>
       </div>
 
-      {/* ── 종목 현황 메타 바 ─────────────────────────── */}
-      <div className="flex flex-wrap items-center justify-between gap-3 px-4 py-2.5 rounded-lg border border-[#1a2540] bg-[#0c1121]/50">
+      {/* 종목 현황 메타 바 */}
+      <div className="flex flex-wrap items-center justify-between gap-3 px-4 py-2.5 rounded-lg border border-zinc-800 bg-zinc-900/50">
         <div className="flex flex-wrap items-center gap-5 text-[11px]">
-          <span className="text-[#3a4a6a]">
+          <span className="text-zinc-600">
             보유 종목{" "}
-            <span className="font-mono text-[#8392b0] font-semibold">{assets.length}개</span>
+            <span className="font-mono text-zinc-400 font-semibold">{assets.length}개</span>
           </span>
 
-          <span className="text-[#1a2540]">|</span>
+          <span className="text-zinc-800">|</span>
 
-          <span className="flex items-center gap-1.5 text-[#3a4a6a]">
+          <span className="flex items-center gap-1.5 text-zinc-600">
             적용 환율
-            <span className="font-mono font-bold text-[#8392b0]">
+            <span className="font-mono font-bold text-zinc-400">
               ₩{Math.round(rate).toLocaleString("ko-KR")}
             </span>
-            <span className="text-[#3a4a6a]">/ $1</span>
+            <span className="text-zinc-600">/ $1</span>
             {exchangeRate > 0 && (
               <span className="text-emerald-400/60 text-[10px]">실시간</span>
             )}
           </span>
 
-          <span className="text-[#1a2540]">|</span>
+          <span className="text-zinc-800">|</span>
 
-          <span className="flex items-center gap-1.5 text-[#3a4a6a]">
+          <span className="flex items-center gap-1.5 text-zinc-600">
             목표 배분
             <span className={`font-mono font-bold ${targetPctColor}`}>
               {totalTargetPct.toFixed(1)}%
@@ -223,7 +225,7 @@ export default function PortfolioSummary({ onRefresh, loading, error, lastUpdate
           </span>
         </div>
 
-        <span className="font-mono text-[10px] text-[#3a4a6a]">
+        <span className="font-mono text-[10px] text-zinc-600">
           {lastUpdated
             ? `${lastUpdated.toLocaleString("ko-KR", {
                 month: "2-digit",
@@ -284,8 +286,8 @@ function StatCard({
   }[accent];
 
   return (
-    <div className="rounded-xl border border-[#1a2540] bg-[#0c1121] p-4 flex flex-col gap-1.5">
-      <p className="text-[10px] uppercase tracking-widest text-[#8392b0] font-semibold">{label}</p>
+    <div className="rounded-xl border border-zinc-800 bg-zinc-900/80 backdrop-blur-sm p-4 flex flex-col gap-1.5">
+      <p className="text-[10px] uppercase tracking-widest text-zinc-400 font-semibold">{label}</p>
       <div className="flex items-center gap-2 mt-0.5">
         {dot && (
           <span className="w-2 h-2 rounded-full bg-amber-400 animate-pulse-dot flex-shrink-0" />
@@ -294,7 +296,7 @@ function StatCard({
       </div>
       <p className="text-[11px] text-sky-400/60">{sub}</p>
       {detail && (
-        <p className="font-mono text-[9px] text-[#3a4a6a] leading-relaxed mt-0.5 break-all">{detail}</p>
+        <p className="font-mono text-[9px] text-zinc-700 leading-relaxed mt-0.5 break-all">{detail}</p>
       )}
     </div>
   );
