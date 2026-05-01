@@ -23,7 +23,7 @@ export default function PortfolioPage() {
         error={error}
         lastUpdated={lastUpdated}
       />
-      <div className="grid grid-cols-1 lg:grid-cols-[5fr_7fr] gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-[5fr_7fr] gap-6">
         <PortfolioPieChart />
         <PortfolioChart />
       </div>

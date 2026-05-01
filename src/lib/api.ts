@@ -83,7 +83,8 @@ export async function fetchAssetPrices(marketAssets: AssetForPrice[]): Promise<{
  * `refresh()`를 호출하면 현재가 + 환율을 가져와 store를 업데이트한다.
  */
 export function useAssetPrices() {
-  const { assets, updatePrices, setExchangeRate, recordSnapshot } = useAssetStore();
+  const { assets, updatePrices, setExchangeRate, recordSnapshot, setLastPriceUpdate } =
+    useAssetStore();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [lastUpdated, setLastUpdated] = useState<Date | null>(null);
@@ -100,13 +101,16 @@ export function useAssetPrices() {
       updatePrices(priceMap);
       setExchangeRate(exchangeRate);
       recordSnapshot();
-      setLastUpdated(new Date());
+      const now = new Date();
+      setLastUpdated(now);
+      setLastPriceUpdate(now.getTime());
     } catch (e) {
+      // Store prices are NOT cleared — existing values remain as last-known data
       setError(e instanceof Error ? e.message : "알 수 없는 오류가 발생했습니다.");
     } finally {
       setLoading(false);
     }
-  }, [assets, updatePrices, setExchangeRate, recordSnapshot]);
+  }, [assets, updatePrices, setExchangeRate, recordSnapshot, setLastPriceUpdate]);
 
   return { refresh, loading, error, lastUpdated };
 }

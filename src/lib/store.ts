@@ -17,6 +17,14 @@ type AssetStore = {
   exchangeRate: number;
   setExchangeRate: (rate: number) => void;
 
+  /** 마지막 시세 조회 성공 시각 (Unix ms) */
+  lastPriceUpdate: number | null;
+  setLastPriceUpdate: (ts: number) => void;
+
+  /** 전체 자산 표시 통화 */
+  displayCurrency: "KRW" | "USD";
+  setDisplayCurrency: (c: "KRW" | "USD") => void;
+
   addAsset: (input: NewAssetInput) => void;
   updateShares: (id: string, shares: number) => void;
   updateAsset: (id: string, updates: Partial<Omit<Asset, "id">>) => void;
@@ -29,20 +37,29 @@ type AssetStore = {
   recordSnapshot: () => void;
   clearHistory: () => void;
   valueHistory: ValueSnapshot[];
+
+  /** 현재 포트폴리오를 JSON 문자열로 내보내기 */
+  exportPortfolio: () => string;
+  /** JSON 문자열에서 포트폴리오 복원 — 기존 자산을 덮어씀 */
+  importPortfolio: (json: string) => void;
 };
 
 // ── 스토어 (localStorage 전체 영속화) ────────────────────────────────────────
 
 export const useAssetStore = create<AssetStore>()(
   persist(
-    (set) => ({
+    (set, get) => ({
       assets: [],
       thresholdPct: 3,
       rebalanceAlert: false,
       exchangeRate: 1_400,
       valueHistory: [],
+      lastPriceUpdate: null,
+      displayCurrency: "KRW",
 
       setExchangeRate: (rate) => set({ exchangeRate: rate }),
+      setLastPriceUpdate: (ts) => set({ lastPriceUpdate: ts }),
+      setDisplayCurrency: (c) => set({ displayCurrency: c }),
 
       addAsset: (input) =>
         set((state) => {
@@ -166,6 +183,26 @@ export const useAssetStore = create<AssetStore>()(
           const seed: ValueSnapshot = { ts: Date.now(), totalKrw, totalUsd };
           return { valueHistory: [seed] };
         }),
+
+      exportPortfolio: () => {
+        const { assets, thresholdPct } = get();
+        return JSON.stringify(
+          { _seunghanist: 1, exportedAt: new Date().toISOString(), thresholdPct, assets },
+          null,
+          2
+        );
+      },
+
+      importPortfolio: (json: string) => {
+        const data = JSON.parse(json) as { assets?: Asset[]; thresholdPct?: number };
+        if (!Array.isArray(data.assets)) throw new Error("유효하지 않은 포트폴리오 파일입니다.");
+        const rate = get().exchangeRate;
+        set({
+          assets: data.assets,
+          thresholdPct: data.thresholdPct ?? 3,
+          rebalanceAlert: calcRebalance(data.assets, data.thresholdPct ?? 3, rate).needsRebalancing,
+        });
+      },
     }),
     {
       name: "asset-management-store",
@@ -174,10 +211,9 @@ export const useAssetStore = create<AssetStore>()(
         let s = persistedState as { assets?: Asset[]; [key: string]: unknown };
 
         if (version <= 6) {
-          // v6 → v8: 구 카테고리 이름 마이그레이션
           const OLD_TO_NEW: Record<string, AssetCategory> = {
             "미국주식": "미국주식",
-            "금현물":   "KRX금현물",   // 원래 KRX 금현물이었으므로 직접 복원
+            "금현물":   "KRX금현물",
             "ISA-ETF":  "국내ETF",
             "주택청약": "현금/예금",
             "IRP":      "연금/퇴직",
@@ -194,7 +230,6 @@ export const useAssetStore = create<AssetStore>()(
         }
 
         if (version === 7) {
-          // v7 → v8: ticker "KRX금현물"이면 "금/원자재" → "KRX금현물" 복원
           s = {
             ...s,
             assets: (s.assets ?? []).map((a: Asset) => ({

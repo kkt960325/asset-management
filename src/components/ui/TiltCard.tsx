@@ -1,48 +1,51 @@
 "use client";
 
-import { useRef, type MouseEvent, type ReactNode } from "react";
+import { useRef, useCallback, type MouseEvent, type ReactNode } from "react";
 import { motion, useMotionValue, useSpring, useTransform } from "framer-motion";
 
 interface TiltCardProps {
   children: ReactNode;
   className?: string;
-  intensity?: number; // 기울기 강도 (기본 4도)
+  intensity?: number;
 }
 
 export function TiltCard({ children, className = "", intensity = 4 }: TiltCardProps) {
   const ref = useRef<HTMLDivElement>(null);
+  const rafId = useRef<number>(0);
 
   const rawX = useMotionValue(0.5);
   const rawY = useMotionValue(0.5);
 
-  const springCfg = { stiffness: 260, damping: 28 };
-  const rotateX = useSpring(
-    useTransform(rawY, [0, 1], [intensity, -intensity]),
-    springCfg
-  );
-  const rotateY = useSpring(
-    useTransform(rawX, [0, 1], [-intensity, intensity]),
-    springCfg
-  );
+  // Softer spring → fewer layout thrashes when many cards are rendered simultaneously
+  const springCfg = { stiffness: 160, damping: 22, mass: 0.8 };
+  const rotateX = useSpring(useTransform(rawY, [0, 1], [intensity, -intensity]), springCfg);
+  const rotateY = useSpring(useTransform(rawX, [0, 1], [-intensity, intensity]), springCfg);
 
-  function onMouseMove(e: MouseEvent<HTMLDivElement>) {
-    const rect = ref.current?.getBoundingClientRect();
-    if (!rect) return;
-    rawX.set((e.clientX - rect.left) / rect.width);
-    rawY.set((e.clientY - rect.top) / rect.height);
-  }
+  const onMouseMove = useCallback((e: MouseEvent<HTMLDivElement>) => {
+    // Capture coordinates synchronously before handing off to RAF
+    const cx = e.clientX;
+    const cy = e.clientY;
+    if (rafId.current) cancelAnimationFrame(rafId.current);
+    rafId.current = requestAnimationFrame(() => {
+      const rect = ref.current?.getBoundingClientRect();
+      if (!rect) return;
+      rawX.set((cx - rect.left) / rect.width);
+      rawY.set((cy - rect.top) / rect.height);
+    });
+  }, [rawX, rawY]);
 
-  function onMouseLeave() {
+  const onMouseLeave = useCallback(() => {
+    if (rafId.current) cancelAnimationFrame(rafId.current);
     rawX.set(0.5);
     rawY.set(0.5);
-  }
+  }, [rawX, rawY]);
 
   return (
     <motion.div
       ref={ref}
       onMouseMove={onMouseMove}
       onMouseLeave={onMouseLeave}
-      style={{ rotateX, rotateY, transformPerspective: 900 }}
+      style={{ rotateX, rotateY, transformPerspective: 900, willChange: "transform" }}
       className={className}
     >
       {children}

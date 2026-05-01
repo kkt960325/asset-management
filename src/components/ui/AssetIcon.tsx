@@ -4,19 +4,19 @@ import { useState } from "react";
 import type { AssetCategory } from "@/lib/types";
 
 const CAT_COLOR: Record<AssetCategory, string> = {
-  "미국주식":   "#38bdf8",  // sky-400
-  "한국주식":   "#34d399",  // emerald-400
-  "해외주식":   "#818cf8",  // indigo-400
-  "국내ETF":    "#2dd4bf",  // teal-400
-  "해외ETF":    "#60a5fa",  // blue-400
-  "채권":       "#94a3b8",  // slate-400
-  "Crypto":     "#fbbf24",  // amber-400
-  "KRX금현물":  "#f59e0b",  // amber-500 (진한 금색, KRX 비과세)
-  "금/원자재":  "#fcd34d",  // yellow-300 (연한 황금)
-  "부동산":     "#fb7185",  // rose-400
-  "현금/예금":  "#a78bfa",  // violet-400
-  "연금/퇴직":  "#fb923c",  // orange-400
-  "보험/기타":  "#f472b6",  // pink-400
+  "미국주식":   "#38bdf8",
+  "한국주식":   "#34d399",
+  "해외주식":   "#818cf8",
+  "국내ETF":    "#2dd4bf",
+  "해외ETF":    "#60a5fa",
+  "채권":       "#94a3b8",
+  "Crypto":     "#fbbf24",
+  "KRX금현물":  "#f59e0b",
+  "금/원자재":  "#fcd34d",
+  "부동산":     "#fb7185",
+  "현금/예금":  "#a78bfa",
+  "연금/퇴직":  "#fb923c",
+  "보험/기타":  "#f472b6",
 };
 
 const CAT_ICON: Partial<Record<AssetCategory, React.ReactNode>> = {
@@ -81,6 +81,7 @@ interface AssetIconProps {
 
 export function AssetIcon({ ticker, category, size = 28 }: AssetIconProps) {
   const [failed, setFailed] = useState(false);
+  const [hovered, setHovered] = useState(false);
   const logoUrl = getLogoUrl(ticker, category);
   const color = CAT_COLOR[category] ?? "#a1a1aa";
   const fallbackIcon = CAT_ICON[category];
@@ -95,8 +96,17 @@ export function AssetIcon({ ticker, category, size = 28 }: AssetIconProps) {
         width={size}
         height={size}
         onError={() => setFailed(true)}
+        onMouseEnter={() => setHovered(true)}
+        onMouseLeave={() => setHovered(false)}
         className="rounded-full object-contain flex-shrink-0"
-        style={{ width: size, height: size, background: "#27272a" }}
+        style={{
+          width: size,
+          height: size,
+          background: "#27272a",
+          // 50% grayscale by default; full color on hover
+          filter: hovered ? "grayscale(0)" : "grayscale(0.5) brightness(0.85)",
+          transition: "filter 0.25s ease",
+        }}
       />
     );
   }
