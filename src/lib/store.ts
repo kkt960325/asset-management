@@ -12,42 +12,25 @@ type AssetStore = {
   thresholdPct: number;
   /** 임계치를 초과한 자산이 하나라도 있으면 true */
   rebalanceAlert: boolean;
-  /** 실시간 USD/KRW 환율 (시세 갱신 시 업데이트, 초기값은 폴백 환율) */
+  /** 실시간 USD/KRW 환율 */
   exchangeRate: number;
   setExchangeRate: (rate: number) => void;
-
-  /** 서버에서 불러온 자산을 스토어에 적재 (mutationVersion 증가 없음) */
-  loadAssetsFromServer: (assets: Asset[]) => void;
-  /** 사용자 뮤테이션 카운터 — 서버 동기화 트리거용 */
-  mutationVersion: number;
 
   addAsset: (input: NewAssetInput) => void;
   updateShares: (id: string, shares: number) => void;
   updateAsset: (id: string, updates: Partial<Omit<Asset, "id">>) => void;
   removeAsset: (id: string) => void;
   setTargetRatios: (ratios: Record<string, number>) => void;
-  /** 부동산 전용: manualValue와 currentValue를 동시에 갱신. 시세 갱신 시 유지 */
   updateManualValue: (id: string, value: number) => void;
-  /**
-   * ticker → PriceData 맵으로 currentPrice / currentValue / currency 일괄 갱신.
-   * 갱신 후 rebalanceAlert를 자동으로 재계산한다.
-   */
   updatePrices: (prices: Record<string, PriceData>) => void;
-  /**
-   * 임계치 변경. 변경 즉시 rebalanceAlert를 재계산한다.
-   * @param pct 퍼센트포인트 (예: 3 → ±3%p)
-   */
   setThreshold: (pct: number) => void;
 
-  /** 시세 갱신 시점의 총액을 valueHistory에 추가 (최대 200개 유지) */
   recordSnapshot: () => void;
-  /** 히스토리 전체 삭제 */
   clearHistory: () => void;
-  /** 총액 추이 히스토리 */
   valueHistory: ValueSnapshot[];
 };
 
-// ── 스토어 생성 (persist로 localStorage 영속화) ───────────────────────────────
+// ── 스토어 (localStorage 전체 영속화) ────────────────────────────────────────
 
 export const useAssetStore = create<AssetStore>()(
   persist(
@@ -57,18 +40,8 @@ export const useAssetStore = create<AssetStore>()(
       rebalanceAlert: false,
       exchangeRate: 1_400,
       valueHistory: [],
-      mutationVersion: 0,
 
       setExchangeRate: (rate) => set({ exchangeRate: rate }),
-
-      loadAssetsFromServer: (assets) =>
-        set((state) => {
-          const safeAssets = Array.isArray(assets) ? assets : [];
-          return {
-            assets: safeAssets,
-            rebalanceAlert: calcRebalance(safeAssets, state.thresholdPct, state.exchangeRate).needsRebalancing,
-          };
-        }),
 
       addAsset: (input) =>
         set((state) => {
@@ -84,76 +57,68 @@ export const useAssetStore = create<AssetStore>()(
                 currency: "KRW" as const,
               }
             : { id, ...input };
-          const updatedAssets = [...state.assets, newAsset];
+          const updated = [...state.assets, newAsset];
           return {
-            assets: updatedAssets,
-            mutationVersion: state.mutationVersion + 1,
-            rebalanceAlert: calcRebalance(updatedAssets, state.thresholdPct, state.exchangeRate).needsRebalancing,
+            assets: updated,
+            rebalanceAlert: calcRebalance(updated, state.thresholdPct, state.exchangeRate).needsRebalancing,
           };
         }),
 
       updateShares: (id, shares) =>
         set((state) => {
-          const updatedAssets = state.assets.map((a) => (a.id === id ? { ...a, shares } : a));
+          const updated = state.assets.map((a) => (a.id === id ? { ...a, shares } : a));
           return {
-            assets: updatedAssets,
-            mutationVersion: state.mutationVersion + 1,
-            rebalanceAlert: calcRebalance(updatedAssets, state.thresholdPct, state.exchangeRate).needsRebalancing,
+            assets: updated,
+            rebalanceAlert: calcRebalance(updated, state.thresholdPct, state.exchangeRate).needsRebalancing,
           };
         }),
 
       updateAsset: (id, updates) =>
         set((state) => {
-          const updatedAssets = state.assets.map((a) => (a.id === id ? { ...a, ...updates } : a));
+          const updated = state.assets.map((a) => (a.id === id ? { ...a, ...updates } : a));
           return {
-            assets: updatedAssets,
-            mutationVersion: state.mutationVersion + 1,
-            rebalanceAlert: calcRebalance(updatedAssets, state.thresholdPct, state.exchangeRate).needsRebalancing,
+            assets: updated,
+            rebalanceAlert: calcRebalance(updated, state.thresholdPct, state.exchangeRate).needsRebalancing,
           };
         }),
 
       removeAsset: (id) =>
         set((state) => {
-          const updatedAssets = state.assets.filter((a) => a.id !== id);
+          const updated = state.assets.filter((a) => a.id !== id);
           return {
-            assets: updatedAssets,
-            mutationVersion: state.mutationVersion + 1,
-            rebalanceAlert: calcRebalance(updatedAssets, state.thresholdPct, state.exchangeRate).needsRebalancing,
+            assets: updated,
+            rebalanceAlert: calcRebalance(updated, state.thresholdPct, state.exchangeRate).needsRebalancing,
           };
         }),
 
       setTargetRatios: (ratios) =>
         set((state) => {
-          const updatedAssets = state.assets.map((a) =>
+          const updated = state.assets.map((a) =>
             ratios[a.id] !== undefined ? { ...a, targetRatio: ratios[a.id] } : a
           );
           return {
-            assets: updatedAssets,
-            mutationVersion: state.mutationVersion + 1,
-            rebalanceAlert: calcRebalance(updatedAssets, state.thresholdPct, state.exchangeRate).needsRebalancing,
+            assets: updated,
+            rebalanceAlert: calcRebalance(updated, state.thresholdPct, state.exchangeRate).needsRebalancing,
           };
         }),
 
       updateManualValue: (id, value) =>
         set((state) => {
-          const updatedAssets = state.assets.map((a) =>
+          const updated = state.assets.map((a) =>
             a.id === id
               ? { ...a, manualValue: value, currentValue: value, currency: "KRW" as const }
               : a
           );
           return {
-            assets: updatedAssets,
-            mutationVersion: state.mutationVersion + 1,
-            rebalanceAlert: calcRebalance(updatedAssets, state.thresholdPct, state.exchangeRate).needsRebalancing,
+            assets: updated,
+            rebalanceAlert: calcRebalance(updated, state.thresholdPct, state.exchangeRate).needsRebalancing,
           };
         }),
 
       updatePrices: (prices) =>
         set((state) => {
-          const updatedAssets = state.assets.map((a) => {
-            // 부동산: manualValue 보존, 시세 갱신 시 무시
+          const updated = state.assets.map((a) => {
             if (a.manualValue !== undefined) return a;
-            // 1차: 정확한 티커 매칭 / 2차: "ticker-USD" 폴백 (Crypto 안전망)
             const data = prices[a.ticker] ?? prices[`${a.ticker}-USD`];
             if (!data) return a;
             return {
@@ -164,8 +129,8 @@ export const useAssetStore = create<AssetStore>()(
             };
           });
           return {
-            assets: updatedAssets,
-            rebalanceAlert: calcRebalance(updatedAssets, state.thresholdPct, state.exchangeRate).needsRebalancing,
+            assets: updated,
+            rebalanceAlert: calcRebalance(updated, state.thresholdPct, state.exchangeRate).needsRebalancing,
           };
         }),
 
@@ -183,9 +148,7 @@ export const useAssetStore = create<AssetStore>()(
           const totalUsd = state.assets
             .filter((a) => a.currency === "USD")
             .reduce((s, a) => s + (a.currentValue ?? 0), 0);
-
           if (totalKrw === 0 && totalUsd === 0) return state;
-
           const next: ValueSnapshot = { ts: Date.now(), totalKrw, totalUsd };
           return { valueHistory: [...state.valueHistory, next].slice(-200) };
         }),
@@ -198,21 +161,14 @@ export const useAssetStore = create<AssetStore>()(
           const totalUsd = state.assets
             .filter((a) => a.currency === "USD")
             .reduce((s, a) => s + (a.currentValue ?? 0), 0);
-
           if (totalKrw === 0 && totalUsd === 0) return { valueHistory: [] };
-
           const seed: ValueSnapshot = { ts: Date.now(), totalKrw, totalUsd };
           return { valueHistory: [seed] };
         }),
     }),
     {
       name: "asset-management-store",
-      version: 5,
-      // assets는 서버에서 로드하므로 로컬 저장에서 제외
-      partialize: (state) => ({
-        thresholdPct: state.thresholdPct,
-        valueHistory: state.valueHistory,
-      }),
+      version: 6,
     }
   )
 );
@@ -225,11 +181,9 @@ export const selectByCategory = (assets: Asset[], category: AssetCategory) =>
 export const selectTotalTargetRatio = (assets: Asset[]) =>
   assets.reduce((sum, a) => sum + a.targetRatio, 0);
 
-/** 전체 평가금액 합산. USD 자산은 환율 미적용이므로 참고용으로만 사용 */
 export const selectTotalCurrentValue = (assets: Asset[]) =>
   assets.reduce((sum, a) => sum + (a.currentValue ?? 0), 0);
 
-/** 리밸런싱 계산 결과 전체. 컴포넌트에서 calcRebalance를 직접 호출하는 대신 사용 */
 export const selectRebalanceSummary = (
   assets: Asset[],
   thresholdPct: number,
