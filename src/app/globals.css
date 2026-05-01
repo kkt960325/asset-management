@@ -3,25 +3,63 @@
 @tailwind utilities;
 
 :root {
-  --font-sans: "Manrope", sans-serif;
-  --font-mono: "JetBrains Mono", monospace;
+  --cm-green:       #00c389;
+  --cm-purple:      #485cc7;
+  --cm-dark-blue:   #0a1c2d;
+  --cm-deep-blue:   #030e18;
+  --cm-offwhite:    #edeff9;
+  --cm-soft-purple: #c2c7e7;
+  --cm-gray:        #787e88;
+  --cm-hover:       #2a4865;
 }
 
 @layer base {
   * { box-sizing: border-box; }
   body {
-    background-color: #09090b;
-    color: #f4f4f5;
+    background-color: #030e18;
+    color: #edeff9;
     font-family: var(--font-sans);
     -webkit-font-smoothing: antialiased;
   }
   ::-webkit-scrollbar { width: 5px; height: 5px; }
-  ::-webkit-scrollbar-track { background: #18181b; }
-  ::-webkit-scrollbar-thumb { background: #3f3f46; border-radius: 3px; }
-  ::-webkit-scrollbar-thumb:hover { background: #38bdf8; }
+  ::-webkit-scrollbar-track { background: #030e18; }
+  ::-webkit-scrollbar-thumb { background: #0a1c2d; border-radius: 2px; }
+  ::-webkit-scrollbar-thumb:hover { background: #2a4865; }
 }
 
 @layer utilities {
   .font-data { font-family: var(--font-mono); }
-  .row-hover:hover { background: linear-gradient(90deg, rgba(56,189,248,0.04) 0%, transparent 60%); }
+
+  /* Comotion gradient utilities */
+  .cm-gradient {
+    background: linear-gradient(108.59deg, #00c389, #485cc7);
+  }
+  .cm-gradient-text {
+    background: linear-gradient(108.59deg, #00c389, #485cc7);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  /* Row hover — green glow sweep */
+  .row-hover:hover {
+    background: linear-gradient(90deg, rgba(0,195,137,0.06) 0%, transparent 60%);
+  }
+}
+
+/* ── Animations ── */
+@keyframes fade-in-up {
+  from { opacity: 0; transform: translateY(24px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+.animate-fade-in-up {
+  animation: fade-in-up 0.8s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+@keyframes pulse-dot {
+  0%, 100% { opacity: 1; }
+  50%       { opacity: 0.3; }
+}
+.animate-pulse-dot {
+  animation: pulse-dot 2.5s ease-in-out infinite;
 }

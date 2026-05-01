@@ -47,15 +47,15 @@ function PieTooltip({
   if (!active || !payload?.length) return null;
   const { label, color, value, pct } = payload[0].payload;
   return (
-    <div className="rounded-xl border border-zinc-800 bg-zinc-950/95 p-3 text-xs shadow-2xl min-w-[140px] backdrop-blur">
+    <div className="rounded-xl border border-white/[0.08] bg-[#030e18]/95 p-3 text-xs shadow-2xl min-w-[140px] backdrop-blur">
       <div className="flex items-center gap-1.5 mb-2">
         <span className="w-2 h-2 rounded-full flex-shrink-0" style={{ background: color }} />
-        <span className="font-semibold text-zinc-100 tracking-wider text-[11px] uppercase">{label}</span>
+        <span className="font-semibold text-[#edeff9] tracking-wider text-[11px] uppercase">{label}</span>
       </div>
       <p className="font-mono text-sm font-bold leading-none" style={{ color }}>
         {fmtKrw(value)}
       </p>
-      <p className="font-mono text-[10px] text-zinc-600 mt-1.5">
+      <p className="font-mono text-[10px] text-[#787e88]/60 mt-1.5">
         포트폴리오 내 {pct.toFixed(2)}%
       </p>
     </div>
@@ -90,15 +90,15 @@ export default function PortfolioPieChart() {
   const activeSlice = activeIdx !== null ? chartData[activeIdx] : null;
 
   return (
-    <div className="rounded-xl border border-zinc-800 bg-zinc-900/80 backdrop-blur-sm overflow-hidden animate-fade-in-up">
+    <div className="rounded-xl border border-white/[0.06] bg-[#0a1c2d]/80 backdrop-blur-sm overflow-hidden animate-fade-in-up">
       {/* 헤더 */}
-      <div className="px-5 py-3.5 border-b border-zinc-800 flex items-center gap-2">
-        <span className="w-1.5 h-1.5 rounded-full bg-amber-400" />
-        <span className="text-xs font-semibold uppercase tracking-widest text-zinc-400">
+      <div className="px-5 py-3.5 border-b border-white/[0.06] flex items-center gap-2">
+        <span className="w-1.5 h-1.5 rounded-full bg-[#f59e0b]" />
+        <span className="text-xs font-semibold uppercase tracking-widest text-[#787e88]">
           자산 비중
         </span>
         {hasData && (
-          <span className="ml-auto font-mono text-[10px] text-zinc-600">
+          <span className="ml-auto font-mono text-[10px] text-[#787e88]/50">
             {chartData.length}개 카테고리
           </span>
         )}
@@ -107,8 +107,8 @@ export default function PortfolioPieChart() {
       {/* 빈 상태 */}
       {!hasData && (
         <div className="h-[280px] flex flex-col items-center justify-center gap-3 px-6 text-center">
-          <div className="w-10 h-10 rounded-full bg-zinc-900 border border-zinc-800 flex items-center justify-center">
-            <svg className="w-4 h-4 text-zinc-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <div className="w-10 h-10 rounded-full bg-[#030e18] border border-white/[0.06] flex items-center justify-center">
+            <svg className="w-4 h-4 text-[#787e88]/50" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5}
                 d="M11 3.055A9.001 9.001 0 1020.945 13H11V3.055z" />
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5}
@@ -116,8 +116,8 @@ export default function PortfolioPieChart() {
             </svg>
           </div>
           <div>
-            <p className="text-zinc-400 text-sm font-medium">시세 데이터 없음</p>
-            <p className="text-zinc-600 text-xs mt-1">시세 갱신 버튼을 눌러주세요</p>
+            <p className="text-[#787e88] text-sm font-medium">시세 데이터 없음</p>
+            <p className="text-[#787e88]/50 text-xs mt-1">시세 갱신 버튼을 눌러주세요</p>
           </div>
         </div>
       )}
@@ -148,7 +148,7 @@ export default function PortfolioPieChart() {
                     <Cell
                       key={entry.category}
                       fill={entry.color}
-                      opacity={activeIdx === null || activeIdx === i ? 1 : 0.35}
+                      opacity={activeIdx === null || activeIdx === i ? 1 : 0.3}
                     />
                   ))}
                 </Pie>
@@ -166,7 +166,7 @@ export default function PortfolioPieChart() {
                   >
                     {activeSlice.label}
                   </span>
-                  <span className="font-mono text-[13px] font-bold text-zinc-100 mt-1 leading-tight">
+                  <span className="font-mono text-[13px] font-bold text-[#edeff9] mt-1 leading-tight">
                     {fmtKrw(activeSlice.value)}
                   </span>
                   <span
@@ -178,13 +178,13 @@ export default function PortfolioPieChart() {
                 </>
               ) : (
                 <>
-                  <span className="font-mono text-[9px] tracking-[0.25em] text-zinc-600 uppercase">
+                  <span className="font-mono text-[9px] tracking-[0.25em] text-[#787e88]/50 uppercase">
                     총 자산
                   </span>
-                  <span className="font-mono text-[13px] font-bold text-zinc-100 mt-1 leading-tight">
+                  <span className="font-mono text-[13px] font-bold text-[#edeff9] mt-1 leading-tight">
                     {fmtKrw(total)}
                   </span>
-                  <span className="font-mono text-[9px] text-zinc-600 mt-0.5">KRW 환산</span>
+                  <span className="font-mono text-[9px] text-[#787e88]/50 mt-0.5">KRW 환산</span>
                 </>
               )}
             </div>
@@ -196,7 +196,7 @@ export default function PortfolioPieChart() {
               <div
                 key={entry.category}
                 className={`flex items-center gap-2.5 px-2.5 py-2 rounded-lg cursor-default transition-all duration-150 ${
-                  activeIdx === i ? "bg-zinc-800/60" : "hover:bg-zinc-800/40"
+                  activeIdx === i ? "bg-white/[0.04]" : "hover:bg-white/[0.03]"
                 }`}
                 onMouseEnter={() => setActiveIdx(i)}
                 onMouseLeave={() => setActiveIdx(null)}
@@ -210,29 +210,29 @@ export default function PortfolioPieChart() {
                   }}
                 />
 
-                <span className="text-[11px] text-zinc-400 flex-1 truncate font-medium">
+                <span className="text-[11px] text-[#787e88] flex-1 truncate font-medium">
                   {entry.label}
                 </span>
 
                 <span
                   className="font-mono text-[11px] transition-colors duration-150"
-                  style={{ color: activeIdx === i ? entry.color : "#f4f4f5" }}
+                  style={{ color: activeIdx === i ? entry.color : "#edeff9" }}
                 >
                   {fmtKrw(entry.value)}
                 </span>
 
                 <span
                   className="font-mono text-[10px] w-11 text-right font-semibold"
-                  style={{ color: activeIdx === i ? entry.color : "#52525b" }}
+                  style={{ color: activeIdx === i ? entry.color : "#787e88" }}
                 >
                   {entry.pct.toFixed(1)}%
                 </span>
               </div>
             ))}
 
-            <div className="mt-1 pt-2 border-t border-zinc-800 flex items-center justify-between px-2.5">
-              <span className="text-[10px] text-zinc-600 uppercase tracking-widest">합계</span>
-              <span className="font-mono text-[11px] font-bold text-sky-400">{fmtKrw(total)}</span>
+            <div className="mt-1 pt-2 border-t border-white/[0.06] flex items-center justify-between px-2.5">
+              <span className="text-[10px] text-[#787e88]/50 uppercase tracking-widest">합계</span>
+              <span className="font-mono text-[11px] font-bold text-[#00c389]">{fmtKrw(total)}</span>
             </div>
           </div>
         </div>

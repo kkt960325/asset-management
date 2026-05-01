@@ -7,7 +7,6 @@ export function MouseGlow() {
   const rawX = useMotionValue(-800);
   const rawY = useMotionValue(-800);
 
-  // 매우 느리게 따라오는 스프링 (차분한 톤 유지)
   const x = useSpring(rawX, { damping: 22, stiffness: 28, mass: 0.6 });
   const y = useSpring(rawY, { damping: 22, stiffness: 28, mass: 0.6 });
 
@@ -21,13 +20,16 @@ export function MouseGlow() {
   }, [rawX, rawY]);
 
   return (
-    <div
-      className="pointer-events-none fixed inset-0 z-0 overflow-hidden"
-      aria-hidden
-    >
+    <div className="pointer-events-none fixed inset-0 z-0 overflow-hidden" aria-hidden>
+      {/* Green glow — centered at cursor */}
       <motion.div
-        style={{ x, y, translateX: "-50%", translateY: "-50%" }}
-        className="absolute w-[900px] h-[900px] rounded-full bg-sky-500/[0.035] blur-[130px]"
+        style={{ x, y, translateX: "-60%", translateY: "-50%" }}
+        className="absolute w-[800px] h-[800px] rounded-full bg-[#00c389]/[0.05] blur-[130px]"
+      />
+      {/* Purple glow — offset upper-right */}
+      <motion.div
+        style={{ x, y, translateX: "-20%", translateY: "-70%" }}
+        className="absolute w-[500px] h-[500px] rounded-full bg-[#485cc7]/[0.04] blur-[100px]"
       />
     </div>
   );

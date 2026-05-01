@@ -119,7 +119,7 @@ function statusBadge(
   threshold: number
 ): { label: string; cls: string } {
   if (result.targetWeight === 0)
-    return { label: "미설정", cls: "text-zinc-400 bg-zinc-800" };
+    return { label: "미설정", cls: "text-[#787e88] bg-white/[0.04]" };
   const abs = Math.abs(result.deviationPct);
   if (result.needsRebalancing) {
     const isBuy = result.rebalanceAmount > 0;
@@ -135,7 +135,8 @@ function statusBadge(
 // ── 메인 컴포넌트 ─────────────────────────────────────────────────────────────
 
 export default function AssetTable() {
-  const { assets, thresholdPct, updateShares, updateAsset, removeAsset, updateManualValue, exchangeRate } = useAssetStore();
+  const { assets, thresholdPct, updateShares, updateAsset, removeAsset, updateManualValue, exchangeRate } =
+    useAssetStore();
   const summary = selectRebalanceSummary(assets, thresholdPct, exchangeRate);
   const resultMap = Object.fromEntries(summary.results.map((r) => [r.id, r]));
 
@@ -204,23 +205,23 @@ export default function AssetTable() {
   );
 
   return (
-    <div className="rounded-xl border border-zinc-800 bg-zinc-900/80 backdrop-blur-sm overflow-hidden animate-fade-in-up">
+    <div className="rounded-xl border border-white/[0.06] bg-[#0a1c2d]/80 backdrop-blur-sm overflow-hidden animate-fade-in-up">
       {/* 헤더 */}
-      <div className="px-5 py-3.5 border-b border-zinc-800 flex items-center justify-between">
+      <div className="px-5 py-3.5 border-b border-white/[0.06] flex items-center justify-between">
         <div className="flex items-center gap-2">
-          <span className="w-1.5 h-1.5 rounded-full bg-sky-400" />
-          <span className="text-xs font-semibold uppercase tracking-widest text-zinc-400">
+          <span className="w-1.5 h-1.5 rounded-full bg-[#00c389]" />
+          <span className="text-xs font-semibold uppercase tracking-widest text-[#787e88]">
             보유 자산 목록
           </span>
         </div>
-        <span className="font-mono text-xs text-zinc-600">{assets.length} items</span>
+        <span className="font-mono text-xs text-[#787e88]/50">{assets.length} items</span>
       </div>
 
       {/* 테이블 래퍼 */}
       <div className="overflow-x-auto">
         <table className="w-full text-sm min-w-[1060px]">
           <thead>
-            <tr className="border-b border-zinc-800">
+            <tr className="border-b border-white/[0.06]">
               {[
                 "티커",
                 "종목명",
@@ -236,14 +237,14 @@ export default function AssetTable() {
               ].map((h) => (
                 <th
                   key={h}
-                  className="px-4 py-3 text-left text-[10px] font-semibold uppercase tracking-widest text-zinc-600 whitespace-nowrap"
+                  className="px-4 py-3 text-left text-[10px] font-semibold uppercase tracking-widest text-[#787e88]/50 whitespace-nowrap"
                 >
                   {h}
                 </th>
               ))}
             </tr>
           </thead>
-          <tbody className="divide-y divide-zinc-800/50">
+          <tbody className="divide-y divide-white/[0.04]">
             {sorted.map((asset) => {
               const cat = CAT[asset.category];
               const result = resultMap[asset.id];
@@ -255,12 +256,12 @@ export default function AssetTable() {
               const hasPriceData = asset.currentValue !== undefined;
               const devStyle = result && hasPriceData && !isFixedAsset
                 ? deviationStyle(result.deviationPct, thresholdPct)
-                : { text: "text-zinc-600", bg: "" };
+                : { text: "text-[#787e88]/40", bg: "" };
               const status = isFixedAsset
                 ? { label: "고정", cls: "text-teal-400 bg-teal-500/10 border border-teal-500/20" }
                 : result && hasPriceData
                 ? statusBadge(result, thresholdPct)
-                : { label: "—", cls: "text-zinc-600" };
+                : { label: "—", cls: "text-[#787e88]/40" };
 
               return (
                 <tr
@@ -273,7 +274,7 @@ export default function AssetTable() {
                   <td className="px-4 py-3.5 whitespace-nowrap">
                     <div className="flex items-center gap-2">
                       <AssetIcon ticker={asset.ticker} category={asset.category} size={24} />
-                      <span className="font-mono font-semibold text-zinc-100 text-sm">
+                      <span className="font-mono font-semibold text-[#edeff9] text-sm">
                         {asset.ticker}
                       </span>
                     </div>
@@ -281,7 +282,7 @@ export default function AssetTable() {
 
                   {/* 종목명 */}
                   <td className="px-4 py-3.5">
-                    <span className="text-zinc-400 text-xs max-w-[160px] truncate block">
+                    <span className="text-[#787e88] text-xs max-w-[160px] truncate block">
                       {asset.name}
                     </span>
                   </td>
@@ -308,7 +309,7 @@ export default function AssetTable() {
                             if (e.key === "Enter") commitEdit();
                             if (e.key === "Escape") setEditing(null);
                           }}
-                          className="w-24 bg-zinc-900 border border-sky-500/40 rounded-md px-2 py-1 font-mono text-xs text-zinc-100 focus:outline-none focus:border-sky-400"
+                          className="w-24 bg-[#030e18] border border-[#00c389]/40 rounded-md px-2 py-1 font-mono text-xs text-[#edeff9] focus:outline-none focus:border-[#00c389]"
                         />
                         <button
                           onClick={commitEdit}
@@ -326,7 +327,7 @@ export default function AssetTable() {
                         </button>
                       </div>
                     ) : (
-                      <span className="font-mono text-xs text-zinc-100">
+                      <span className="font-mono text-xs text-[#edeff9]">
                         {fmtShares(asset.shares, asset.category)}
                       </span>
                     )}
@@ -350,7 +351,7 @@ export default function AssetTable() {
                               if (e.key === "Escape") setEditingManual(null);
                             }}
                             onBlur={commitEditManual}
-                            className="w-36 bg-zinc-900 border border-teal-500/40 rounded-md px-2 py-1 font-mono text-xs text-teal-300 text-right focus:outline-none focus:border-teal-400"
+                            className="w-36 bg-[#030e18] border border-teal-500/40 rounded-md px-2 py-1 font-mono text-xs text-teal-300 text-right focus:outline-none focus:border-teal-400"
                           />
                         </div>
                       ) : (
@@ -359,7 +360,7 @@ export default function AssetTable() {
                           title="클릭하여 금액 수정"
                           className="group flex flex-col items-end gap-0.5 w-full hover:text-teal-300 transition-colors"
                         >
-                          <span className="font-mono text-xs text-zinc-100 group-hover:text-teal-300 transition-colors">
+                          <span className="font-mono text-xs text-[#edeff9] group-hover:text-teal-300 transition-colors">
                             {asset.currentValue !== undefined && asset.currentValue > 0
                               ? `₩${Math.round(asset.currentValue).toLocaleString("ko-KR")}`
                               : "—"}
@@ -371,17 +372,17 @@ export default function AssetTable() {
                       )
                     ) : asset.currentValue !== undefined && asset.currentValue > 0 ? (
                       <div className="flex flex-col items-end gap-0.5">
-                        <span className="font-mono text-xs text-zinc-100">
+                        <span className="font-mono text-xs text-[#edeff9]">
                           {fmtValue(asset.currentValue, asset.currency)}
                         </span>
-                        <span className="font-mono text-[10px] text-zinc-600">
+                        <span className="font-mono text-[10px] text-[#787e88]/50">
                           {asset.currency === "USD"
                             ? `(₩${Math.round(asset.currentValue * exchangeRate).toLocaleString("ko-KR")})`
                             : `($${(asset.currentValue / exchangeRate).toLocaleString("en-US", { maximumFractionDigits: 0 })})`}
                         </span>
                       </div>
                     ) : (
-                      <span className="font-mono text-xs text-zinc-600">
+                      <span className="font-mono text-xs text-[#787e88]/40">
                         {["미국주식", "해외주식", "해외ETF", "Crypto"].includes(asset.category)
                           ? "$0.00"
                           : "₩0"}
@@ -393,18 +394,18 @@ export default function AssetTable() {
                   <td className="px-4 py-3.5 whitespace-nowrap">
                     {result && result.currentWeight > 0 ? (
                       <div className="flex items-center gap-2">
-                        <div className="w-16 h-1 bg-zinc-800 rounded-full overflow-hidden">
+                        <div className="w-16 h-1 bg-white/[0.06] rounded-full overflow-hidden">
                           <div
                             className={`h-full rounded-full ${cat.text.replace("text-", "bg-")}`}
                             style={{ width: `${Math.min(result.currentWeight * 100 * 2, 100)}%` }}
                           />
                         </div>
-                        <span className="font-mono text-xs text-zinc-100">
+                        <span className="font-mono text-xs text-[#edeff9]">
                           {(result.currentWeight * 100).toFixed(1)}%
                         </span>
                       </div>
                     ) : (
-                      <span className="font-mono text-xs text-zinc-600">—</span>
+                      <span className="font-mono text-xs text-[#787e88]/40">—</span>
                     )}
                   </td>
 
@@ -430,26 +431,26 @@ export default function AssetTable() {
                             if (e.key === "Escape") setEditingRatio(null);
                           }}
                           onBlur={commitEditRatio}
-                          className="w-20 bg-zinc-900 border border-violet-500/40 rounded-md px-2 py-1 font-mono text-xs text-zinc-100 focus:outline-none focus:border-violet-400"
+                          className="w-20 bg-[#030e18] border border-[#485cc7]/40 rounded-md px-2 py-1 font-mono text-xs text-[#edeff9] focus:outline-none focus:border-[#485cc7]"
                         />
-                        <span className="text-zinc-600 text-xs">%</span>
+                        <span className="text-[#787e88]/50 text-xs">%</span>
                       </div>
                     ) : (
                       <button
                         onClick={() => startEditRatio(asset)}
                         title="클릭하여 목표비중 입력"
-                        className="group flex items-center justify-between gap-2 w-full px-2 py-1 rounded border border-transparent hover:border-violet-500/30 hover:bg-violet-500/5 transition-all"
+                        className="group flex items-center justify-between gap-2 w-full px-2 py-1 rounded border border-transparent hover:border-[#485cc7]/30 hover:bg-[#485cc7]/5 transition-all"
                       >
                         {asset.targetRatio > 0 ? (
-                          <span className="font-mono text-xs text-zinc-100 group-hover:text-violet-300 transition-colors">
+                          <span className="font-mono text-xs text-[#edeff9] group-hover:text-[#c2c7e7] transition-colors">
                             {asset.targetRatio.toFixed(1)}%
                           </span>
                         ) : (
-                          <span className="font-mono text-xs text-zinc-600 group-hover:text-violet-400 transition-colors italic">
+                          <span className="font-mono text-xs text-[#787e88]/40 group-hover:text-[#485cc7]/70 transition-colors italic">
                             클릭하여 설정
                           </span>
                         )}
-                        <span className="opacity-0 group-hover:opacity-80 transition-opacity text-violet-400 flex-shrink-0">
+                        <span className="opacity-0 group-hover:opacity-80 transition-opacity text-[#485cc7] flex-shrink-0">
                           <PencilTinyIcon />
                         </span>
                       </button>
@@ -466,7 +467,7 @@ export default function AssetTable() {
                         {result.deviationPct.toFixed(2)}%p
                       </span>
                     ) : (
-                      <span className="font-mono text-xs text-zinc-600">—</span>
+                      <span className="font-mono text-xs text-[#787e88]/40">—</span>
                     )}
                   </td>
 
@@ -481,7 +482,7 @@ export default function AssetTable() {
                         onHideTooltip={() => setTooltip(null)}
                       />
                     ) : (
-                      <span className="font-mono text-xs text-zinc-600">—</span>
+                      <span className="font-mono text-xs text-[#787e88]/40">—</span>
                     )}
                   </td>
 
@@ -501,7 +502,7 @@ export default function AssetTable() {
                         <button
                           onClick={() => startEdit(asset)}
                           title="수량 수정"
-                          className="p-1.5 rounded-md text-zinc-600 hover:text-sky-400 hover:bg-sky-500/10 transition-all"
+                          className="p-1.5 rounded-md text-[#787e88]/50 hover:text-[#00c389] hover:bg-[#00c389]/10 transition-all"
                         >
                           <PencilIcon />
                         </button>
@@ -512,7 +513,7 @@ export default function AssetTable() {
                         className={`p-1.5 rounded-md transition-all ${
                           isDeleting
                             ? "text-rose-400 bg-rose-500/20 animate-pulse"
-                            : "text-zinc-600 hover:text-rose-400 hover:bg-rose-500/10"
+                            : "text-[#787e88]/50 hover:text-rose-400 hover:bg-rose-500/10"
                         }`}
                       >
                         <TrashIcon />
@@ -527,7 +528,7 @@ export default function AssetTable() {
       </div>
 
       {assets.length === 0 && (
-        <div className="py-16 text-center text-zinc-600 text-sm">
+        <div className="py-16 text-center text-[#787e88]/50 text-sm">
           보유 자산이 없습니다. 아래에서 종목을 추가하세요.
         </div>
       )}
@@ -618,7 +619,7 @@ function TaxTooltip({ asset, tax, x, y }: TaxTooltipProps) {
     {
       label: "매도 예상",
       value: fmtTaxAmount(tax.sellValue, tax.currency),
-      cls: "text-zinc-100",
+      cls: "text-[#edeff9]",
     },
     {
       label: "연간 공제 한도",
@@ -638,30 +639,30 @@ function TaxTooltip({ asset, tax, x, y }: TaxTooltipProps) {
     {
       label: "공제 잔여액",
       value: fmtTaxAmount(tax.deductionRemaining, tax.currency),
-      cls: tax.deductionRemaining > 0 ? "text-emerald-400" : "text-zinc-600",
+      cls: tax.deductionRemaining > 0 ? "text-emerald-400" : "text-[#787e88]/50",
     },
   ];
 
   return (
     <div
-      className="fixed z-50 bg-zinc-950 border border-zinc-800 rounded-xl shadow-2xl p-4 min-w-[230px] pointer-events-none"
+      className="fixed z-50 bg-[#030e18] border border-white/[0.08] rounded-xl shadow-2xl p-4 min-w-[230px] pointer-events-none"
       style={{ left: Math.min(x, window.innerWidth - 250), top: y }}
     >
-      <p className="text-[10px] font-semibold uppercase tracking-widest text-zinc-600 mb-3">
+      <p className="text-[10px] font-semibold uppercase tracking-widest text-[#787e88]/50 mb-3">
         {asset.ticker} 세금 간이 추정
       </p>
       <div className="space-y-1.5 mb-3">
         {rows.map((row) => (
           <div key={row.label} className="flex justify-between items-center gap-6">
-            <span className="text-zinc-400 text-[11px]">{row.label}</span>
-            <span className={`font-mono text-[11px] ${row.cls ?? "text-zinc-100"}`}>
+            <span className="text-[#787e88] text-[11px]">{row.label}</span>
+            <span className={`font-mono text-[11px] ${row.cls ?? "text-[#edeff9]"}`}>
               {row.value}
             </span>
           </div>
         ))}
       </div>
-      <div className="border-t border-zinc-800 pt-2.5">
-        <p className="text-zinc-600 text-[10px] leading-relaxed whitespace-pre-line">
+      <div className="border-t border-white/[0.06] pt-2.5">
+        <p className="text-[#787e88]/50 text-[10px] leading-relaxed whitespace-pre-line">
           {TAX_NOTE[asset.category]}
         </p>
       </div>
