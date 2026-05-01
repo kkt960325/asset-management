@@ -21,6 +21,14 @@ const INITIAL = {
   manualValue: "",
 };
 
+const inputBase: React.CSSProperties = {
+  background: "rgba(0,8,18,0.9)",
+  border: "1px solid rgba(0,212,255,0.14)",
+  color: "#b8e0f0",
+  outline: "none",
+  fontFamily: "var(--font-mono)",
+};
+
 export default function AddAssetForm() {
   const { assets, addAsset } = useAssetStore();
   const [form, setForm] = useState(INITIAL);
@@ -39,18 +47,13 @@ export default function AddAssetForm() {
 
   function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
-
     if (isFixed) {
       const name = form.name.trim() || form.ticker.trim();
       const ticker = (form.ticker.trim() || name).toUpperCase();
       const amount = Number(form.manualValue.replace(/,/g, ""));
       if (!ticker || isNaN(amount) || amount < 0) return;
-
       addAsset({
-        ticker,
-        name,
-        shares: 1,
-        category: form.category,
+        ticker, name, shares: 1, category: form.category,
         targetRatio: Math.min(100, Math.max(0, Number(form.targetRatio) || 0)),
         manualValue: amount,
       });
@@ -59,55 +62,72 @@ export default function AddAssetForm() {
       const ticker = form.ticker.trim().toUpperCase();
       const shares = Number(form.shares.replace(/,/g, ""));
       if (!ticker || isNaN(shares) || shares < 0) return;
-
       addAsset({
-        ticker,
-        name: form.name.trim() || ticker,
-        shares,
-        category: form.category,
+        ticker, name: form.name.trim() || ticker, shares, category: form.category,
         targetRatio: Math.min(100, Math.max(0, Number(form.targetRatio) || 0)),
       });
       setAdded(ticker);
     }
-
     setForm(INITIAL);
     setTimeout(() => setAdded(null), 2500);
   }
 
   return (
-    <div className="rounded-xl border border-white/[0.06] bg-[#0a1c2d]/80 backdrop-blur-sm overflow-hidden animate-fade-in-up">
-      {/* 헤더 */}
-      <div className="px-5 py-3.5 border-b border-white/[0.06] flex items-center justify-between">
+    <div
+      className="relative overflow-hidden animate-fade-in-up"
+      style={{
+        background: "linear-gradient(135deg, rgba(0,12,24,0.96) 0%, rgba(0,7,16,0.99) 100%)",
+        border: "1px solid rgba(0,212,255,0.12)",
+        boxShadow: "0 0 0 1px rgba(0,212,255,0.04), inset 0 0 80px rgba(0,60,120,0.04), 0 8px 40px rgba(0,0,8,0.9)",
+      }}
+    >
+      {/* Top glow line */}
+      <div className="absolute top-0 inset-x-0 h-px" style={{ background: "linear-gradient(90deg, transparent, rgba(0,212,255,0.5), transparent)" }} />
+      {/* Corners */}
+      <div className="absolute top-0 left-0 w-3 h-3 z-10" style={{ borderTop: "1px solid rgba(0,212,255,0.5)", borderLeft: "1px solid rgba(0,212,255,0.5)" }} />
+      <div className="absolute top-0 right-0 w-3 h-3 z-10" style={{ borderTop: "1px solid rgba(0,212,255,0.5)", borderRight: "1px solid rgba(0,212,255,0.5)" }} />
+      <div className="absolute bottom-0 left-0 w-3 h-3 z-10" style={{ borderBottom: "1px solid rgba(0,212,255,0.5)", borderLeft: "1px solid rgba(0,212,255,0.5)" }} />
+      <div className="absolute bottom-0 right-0 w-3 h-3 z-10" style={{ borderBottom: "1px solid rgba(0,212,255,0.5)", borderRight: "1px solid rgba(0,212,255,0.5)" }} />
+
+      {/* Header */}
+      <div
+        className="px-5 py-3.5 flex items-center justify-between"
+        style={{ borderBottom: "1px solid rgba(0,212,255,0.1)" }}
+      >
         <div className="flex items-center gap-2">
-          <span className="w-1.5 h-1.5 rounded-full bg-[#00c389]" />
-          <span className="text-xs font-semibold uppercase tracking-widest text-[#787e88]">
-            새로운 종목 추가
+          <span className="w-1.5 h-1.5 rounded-full" style={{ background: "#00d4ff", boxShadow: "0 0 6px #00d4ff" }} />
+          <span className="font-display text-[10px] tracking-[0.35em] uppercase" style={{ color: "rgba(0,212,255,0.45)" }}>
+            ADD ASSET
           </span>
           {isFixed && (
-            <span className="text-[10px] px-2 py-0.5 rounded-md bg-teal-500/10 text-teal-400 border border-teal-500/20 font-semibold">
-              고정 자산
+            <span
+              className="font-display text-[9px] px-2 py-0.5 tracking-[0.2em] uppercase"
+              style={{ border: "1px solid rgba(0,204,170,0.3)", color: "#00ccaa", background: "rgba(0,204,170,0.07)" }}
+            >
+              FIXED ASSET
             </span>
           )}
         </div>
 
-        {/* 목표 배분 현황 뱃지 */}
         <div className="flex items-center gap-2">
-          <span className="text-[10px] text-[#787e88]/50">현재 배분 합계</span>
+          <span className="font-display text-[9px] tracking-[0.2em] uppercase" style={{ color: "rgba(0,212,255,0.25)" }}>
+            ALLOCATED
+          </span>
           <span
-            className={`font-mono text-[11px] font-bold px-2 py-0.5 rounded-md ${
-              Math.abs(currentTotalPct - 100) < 0.01
-                ? "text-[#00c389] bg-[#00c389]/10"
-                : currentTotalPct > 100
-                ? "text-rose-400 bg-rose-500/10"
-                : "text-[#787e88] bg-white/[0.04]"
-            }`}
+            className="font-mono text-[11px] font-bold px-2 py-0.5"
+            style={{
+              color: Math.abs(currentTotalPct - 100) < 0.01 ? "#00d4ff"
+                : currentTotalPct > 100 ? "#ff2244" : "rgba(0,212,255,0.5)",
+              border: `1px solid ${Math.abs(currentTotalPct - 100) < 0.01 ? "rgba(0,212,255,0.3)"
+                : currentTotalPct > 100 ? "rgba(255,34,68,0.3)" : "rgba(0,212,255,0.12)"}`,
+              textShadow: Math.abs(currentTotalPct - 100) < 0.01 ? "0 0 8px rgba(0,212,255,0.6)" : undefined,
+            }}
           >
             {currentTotalPct.toFixed(1)}%
           </span>
           {remaining > 0 && (
-            <span className="text-[10px] text-[#787e88]/50">
-              잔여{" "}
-              <span className="font-mono text-[#f59e0b]">{remaining.toFixed(1)}%</span>
+            <span className="font-mono text-[10px]" style={{ color: "rgba(255,170,0,0.6)" }}>
+              +{remaining.toFixed(1)}%
             </span>
           )}
         </div>
@@ -115,15 +135,16 @@ export default function AddAssetForm() {
 
       <form onSubmit={handleSubmit} className="p-5">
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3">
-          {/* 티커 / 자산명 */}
+
+          {/* Ticker / asset name */}
           <div className="flex flex-col gap-1.5">
-            <label className="text-[10px] uppercase tracking-widest text-[#787e88]/60 font-semibold">
-              {isFixed ? "자산명" : "티커"} <span className="text-rose-500">*</span>
+            <label className="font-display text-[9px] tracking-[0.35em] uppercase" style={{ color: "rgba(0,212,255,0.35)" }}>
+              {isFixed ? "ASSET ID" : "TICKER"} <span style={{ color: "#ff2244" }}>*</span>
             </label>
             <input
               type="text"
               placeholder={
-                isFixed ? "강남 아파트"
+                isFixed ? "GANGNAM_APT"
                 : form.category === "한국주식" || form.category === "국내ETF" ? "005930"
                 : form.category === "Crypto" ? "BTC"
                 : form.category === "KRX금현물" ? "KRX금현물"
@@ -133,19 +154,25 @@ export default function AddAssetForm() {
               value={form.ticker}
               onChange={(e) => set("ticker", isFixed ? e.target.value : e.target.value.toUpperCase())}
               required
-              className="h-9 bg-[#030e18] border border-white/[0.08] rounded-lg px-3 font-mono text-sm text-[#edeff9] placeholder-[#787e88]/40 focus:outline-none focus:border-[#00c389]/50 transition-all"
+              className="h-9 px-3 text-sm transition-all"
+              style={{
+                ...inputBase,
+                caretColor: "#00d4ff",
+              }}
+              onFocus={(e) => { e.target.style.border = "1px solid rgba(0,212,255,0.5)"; e.target.style.boxShadow = "0 0 12px rgba(0,212,255,0.08)"; }}
+              onBlur={(e) => { e.target.style.border = "1px solid rgba(0,212,255,0.14)"; e.target.style.boxShadow = "none"; }}
             />
           </div>
 
-          {/* 종목명 */}
+          {/* Name / memo */}
           <div className="flex flex-col gap-1.5">
-            <label className="text-[10px] uppercase tracking-widest text-[#787e88]/60 font-semibold">
-              {isFixed ? "메모" : "종목명"}
+            <label className="font-display text-[9px] tracking-[0.35em] uppercase" style={{ color: "rgba(0,212,255,0.35)" }}>
+              {isFixed ? "MEMO" : "NAME"}
             </label>
             <input
               type="text"
               placeholder={
-                isFixed ? "선택 입력"
+                isFixed ? "OPTIONAL"
                 : form.category === "한국주식" || form.category === "국내ETF" ? "삼성전자"
                 : form.category === "Crypto" ? "Bitcoin"
                 : form.category === "KRX금현물" ? "KRX 금 현물"
@@ -154,108 +181,131 @@ export default function AddAssetForm() {
               }
               value={form.name}
               onChange={(e) => set("name", e.target.value)}
-              className="h-9 bg-[#030e18] border border-white/[0.08] rounded-lg px-3 text-sm text-[#edeff9] placeholder-[#787e88]/40 focus:outline-none focus:border-[#00c389]/50 transition-all"
+              className="h-9 px-3 text-sm transition-all"
+              style={{ ...inputBase, fontFamily: "var(--font-sans)" }}
+              onFocus={(e) => { e.target.style.border = "1px solid rgba(0,212,255,0.5)"; e.target.style.boxShadow = "0 0 12px rgba(0,212,255,0.08)"; }}
+              onBlur={(e) => { e.target.style.border = "1px solid rgba(0,212,255,0.14)"; e.target.style.boxShadow = "none"; }}
             />
           </div>
 
-          {/* 카테고리 */}
+          {/* Category */}
           <div className="flex flex-col gap-1.5">
-            <label className="text-[10px] uppercase tracking-widest text-[#787e88]/60 font-semibold">
-              카테고리
+            <label className="font-display text-[9px] tracking-[0.35em] uppercase" style={{ color: "rgba(0,212,255,0.35)" }}>
+              CATEGORY
             </label>
             <select
               value={form.category}
               onChange={(e) => set("category", e.target.value as AssetCategory)}
-              className="h-9 bg-[#030e18] border border-white/[0.08] rounded-lg px-3 text-sm text-[#edeff9] focus:outline-none focus:border-[#00c389]/50 transition-all appearance-none cursor-pointer"
+              className="h-9 px-3 text-sm cursor-pointer appearance-none transition-all"
+              style={{ ...inputBase }}
+              onFocus={(e) => { e.target.style.border = "1px solid rgba(0,212,255,0.5)"; }}
+              onBlur={(e) => { e.target.style.border = "1px solid rgba(0,212,255,0.14)"; }}
             >
               {CATEGORIES.map((c) => (
-                <option key={c} value={c}>{c}</option>
+                <option key={c} value={c} style={{ background: "#000f20" }}>{c}</option>
               ))}
             </select>
           </div>
 
-          {/* 보유수량 / 평가금액 */}
+          {/* Shares / value */}
           <div className="flex flex-col gap-1.5">
-            <label className="text-[10px] uppercase tracking-widest text-[#787e88]/60 font-semibold">
-              {isFixed ? "평가금액 (₩)" : "보유수량"} <span className="text-rose-500">*</span>
+            <label className="font-display text-[9px] tracking-[0.35em] uppercase" style={{ color: "rgba(0,212,255,0.35)" }}>
+              {isFixed ? "VALUE (₩)" : "QUANTITY"} <span style={{ color: "#ff2244" }}>*</span>
             </label>
             {isFixed ? (
               <input
-                type="text"
-                inputMode="numeric"
+                type="text" inputMode="numeric"
                 placeholder="500,000,000"
                 value={form.manualValue}
                 onChange={(e) => set("manualValue", e.target.value)}
                 required
-                className="h-9 bg-[#030e18] border border-teal-500/30 rounded-lg px-3 font-mono text-sm text-teal-300 placeholder-[#787e88]/40 focus:outline-none focus:border-teal-400/60 transition-all"
+                className="h-9 px-3 text-sm transition-all"
+                style={{ ...inputBase, border: "1px solid rgba(0,204,170,0.2)", color: "#00ccaa" }}
+                onFocus={(e) => { e.target.style.border = "1px solid rgba(0,204,170,0.5)"; e.target.style.boxShadow = "0 0 12px rgba(0,204,170,0.08)"; }}
+                onBlur={(e) => { e.target.style.border = "1px solid rgba(0,204,170,0.2)"; e.target.style.boxShadow = "none"; }}
               />
             ) : (
               <input
-                type="text"
-                inputMode="numeric"
+                type="text" inputMode="numeric"
                 placeholder="100"
                 value={form.shares}
                 onChange={(e) => set("shares", e.target.value)}
                 required
-                className="h-9 bg-[#030e18] border border-white/[0.08] rounded-lg px-3 font-mono text-sm text-[#edeff9] placeholder-[#787e88]/40 focus:outline-none focus:border-[#00c389]/50 transition-all"
+                className="h-9 px-3 text-sm transition-all"
+                style={inputBase}
+                onFocus={(e) => { e.target.style.border = "1px solid rgba(0,212,255,0.5)"; e.target.style.boxShadow = "0 0 12px rgba(0,212,255,0.08)"; }}
+                onBlur={(e) => { e.target.style.border = "1px solid rgba(0,212,255,0.14)"; e.target.style.boxShadow = "none"; }}
               />
             )}
           </div>
 
-          {/* 목표비중 + 제출 버튼 */}
+          {/* Target ratio + submit */}
           <div className="flex flex-col gap-1.5">
-            <label className="text-[10px] uppercase tracking-widest text-[#787e88]/60 font-semibold">
-              목표비중 (%)
+            <label className="font-display text-[9px] tracking-[0.35em] uppercase" style={{ color: "rgba(0,212,255,0.35)" }}>
+              TARGET (%)
             </label>
             <div className="flex gap-2">
               <input
-                type="number"
-                min={0}
-                max={100}
-                step={0.1}
+                type="number" min={0} max={100} step={0.1}
                 placeholder={remaining > 0 ? remaining.toFixed(1) : "0"}
                 value={form.targetRatio}
                 onChange={(e) => set("targetRatio", e.target.value)}
-                className={`h-9 flex-1 bg-[#030e18] border rounded-lg px-3 font-mono text-sm text-[#edeff9] placeholder-[#787e88]/40 focus:outline-none transition-all ${
-                  wouldExceed
-                    ? "border-rose-500/50 focus:border-rose-400"
-                    : "border-white/[0.08] focus:border-[#00c389]/50"
-                }`}
+                className="h-9 flex-1 px-3 text-sm transition-all"
+                style={{
+                  ...inputBase,
+                  border: wouldExceed ? "1px solid rgba(255,34,68,0.4)" : "1px solid rgba(0,212,255,0.14)",
+                  color: wouldExceed ? "#ff2244" : "#b8e0f0",
+                }}
+                onFocus={(e) => { e.target.style.boxShadow = "0 0 12px rgba(0,212,255,0.08)"; }}
+                onBlur={(e) => { e.target.style.boxShadow = "none"; }}
               />
               <button
                 type="submit"
-                className="h-9 px-4 bg-[#00c389]/15 border border-[#00c389]/30 rounded-lg text-[#00c389] text-xs font-semibold hover:bg-[#00c389]/25 hover:border-[#00c389]/60 active:scale-95 transition-all whitespace-nowrap"
+                className="h-9 px-4 font-display text-[10px] tracking-[0.2em] uppercase transition-all group relative overflow-hidden"
+                style={{
+                  border: "1px solid rgba(0,212,255,0.35)",
+                  color: "#00d4ff",
+                  background: "rgba(0,212,255,0.04)",
+                }}
+                onMouseEnter={(e) => {
+                  (e.currentTarget as HTMLElement).style.background = "rgba(0,212,255,0.1)";
+                  (e.currentTarget as HTMLElement).style.boxShadow = "0 0 16px rgba(0,212,255,0.15)";
+                }}
+                onMouseLeave={(e) => {
+                  (e.currentTarget as HTMLElement).style.background = "rgba(0,212,255,0.04)";
+                  (e.currentTarget as HTMLElement).style.boxShadow = "none";
+                }}
               >
-                + 추가
+                + ADD
               </button>
             </div>
           </div>
         </div>
 
-        {/* 초과 경고 */}
+        {/* Exceed warning */}
         {wouldExceed && (
-          <div className="mt-3 flex items-center gap-2 text-rose-400 text-xs animate-fade-in-up">
+          <div className="mt-3 flex items-center gap-2 text-xs font-mono animate-fade-in-up" style={{ color: "#ff2244" }}>
             <svg className="w-3.5 h-3.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
                 d="M12 9v2m0 4h.01M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z" />
             </svg>
             <span>
-              목표비중 합계가{" "}
-              <span className="font-mono font-semibold">{projectedTotal.toFixed(1)}%</span>
-              로 100%를 초과합니다.{" "}
-              <span className="font-mono">{remaining.toFixed(1)}%</span> 이하로 입력하세요.
+              [OVERFLOW] TARGET SUM{" "}
+              <span className="font-bold">{projectedTotal.toFixed(1)}%</span>
+              {" "}EXCEEDS 100% — MAX REMAINING:{" "}
+              <span className="font-bold">{remaining.toFixed(1)}%</span>
             </span>
           </div>
         )}
 
-        {/* 성공 메시지 */}
+        {/* Success */}
         {added && (
-          <div className="mt-3 flex items-center gap-2 text-[#00c389] text-xs animate-fade-in-up">
+          <div className="mt-3 flex items-center gap-2 text-xs font-mono animate-fade-in-up" style={{ color: "#00d4ff" }}>
             <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7" />
             </svg>
             <span>
-              <span className="font-mono font-semibold">{added}</span> 자산이 추가되었습니다.
+              [OK] <span className="font-bold">{added}</span> ADDED TO PORTFOLIO
             </span>
           </div>
         )}

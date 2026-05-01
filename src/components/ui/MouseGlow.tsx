@@ -21,15 +21,27 @@ export function MouseGlow() {
 
   return (
     <div className="pointer-events-none fixed inset-0 z-0 overflow-hidden" aria-hidden>
-      {/* Green glow — centered at cursor */}
+      {/* Primary cyan glow — follows cursor */}
       <motion.div
-        style={{ x, y, translateX: "-60%", translateY: "-50%" }}
-        className="absolute w-[800px] h-[800px] rounded-full bg-[#00c389]/[0.05] blur-[130px]"
+        style={{
+          x,
+          y,
+          translateX: "-55%",
+          translateY: "-55%",
+          background: "radial-gradient(circle, rgba(0,212,255,0.055) 0%, rgba(0,120,200,0.02) 40%, transparent 70%)",
+        }}
+        className="absolute w-[800px] h-[800px] rounded-full blur-[110px]"
       />
-      {/* Purple glow — offset upper-right */}
+      {/* Secondary blue glow — offset */}
       <motion.div
-        style={{ x, y, translateX: "-20%", translateY: "-70%" }}
-        className="absolute w-[500px] h-[500px] rounded-full bg-[#485cc7]/[0.04] blur-[100px]"
+        style={{
+          x,
+          y,
+          translateX: "-25%",
+          translateY: "-75%",
+          background: "radial-gradient(circle, rgba(0,80,200,0.04) 0%, transparent 65%)",
+        }}
+        className="absolute w-[500px] h-[500px] rounded-full blur-[90px]"
       />
     </div>
   );

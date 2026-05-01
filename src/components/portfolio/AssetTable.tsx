@@ -8,89 +8,30 @@ import type { AssetRebalanceResult } from "@/lib/rebalancer";
 import { estimateSellTax, fmtTaxAmount, TAX_NOTE } from "@/lib/tax";
 import { AssetIcon } from "@/components/ui/AssetIcon";
 
-// ── 카테고리별 스타일 ──────────────────────────────────────────────────────────
+// ── Category styles ───────────────────────────────────────────────────────────
 
-const CAT: Record<AssetCategory, { border: string; badge: string; text: string }> = {
-  "미국주식": {
-    border: "border-l-sky-400",
-    badge: "bg-sky-500/10 text-sky-400 border-sky-500/20",
-    text: "text-sky-400",
-  },
-  "한국주식": {
-    border: "border-l-emerald-400",
-    badge: "bg-emerald-500/10 text-emerald-400 border-emerald-500/20",
-    text: "text-emerald-400",
-  },
-  "해외주식": {
-    border: "border-l-indigo-400",
-    badge: "bg-indigo-500/10 text-indigo-400 border-indigo-500/20",
-    text: "text-indigo-400",
-  },
-  "국내ETF": {
-    border: "border-l-teal-400",
-    badge: "bg-teal-500/10 text-teal-400 border-teal-500/20",
-    text: "text-teal-400",
-  },
-  "해외ETF": {
-    border: "border-l-blue-400",
-    badge: "bg-blue-500/10 text-blue-400 border-blue-500/20",
-    text: "text-blue-400",
-  },
-  "채권": {
-    border: "border-l-slate-400",
-    badge: "bg-slate-500/10 text-slate-400 border-slate-500/20",
-    text: "text-slate-400",
-  },
-  "Crypto": {
-    border: "border-l-amber-400",
-    badge: "bg-amber-500/10 text-amber-400 border-amber-500/20",
-    text: "text-amber-400",
-  },
-  "KRX금현물": {
-    border: "border-l-amber-500",
-    badge: "bg-amber-600/10 text-amber-500 border-amber-500/30",
-    text: "text-amber-500",
-  },
-  "금/원자재": {
-    border: "border-l-yellow-400",
-    badge: "bg-yellow-500/10 text-yellow-400 border-yellow-500/20",
-    text: "text-yellow-400",
-  },
-  "부동산": {
-    border: "border-l-rose-400",
-    badge: "bg-rose-500/10 text-rose-400 border-rose-500/20",
-    text: "text-rose-400",
-  },
-  "현금/예금": {
-    border: "border-l-violet-400",
-    badge: "bg-violet-500/10 text-violet-400 border-violet-500/20",
-    text: "text-violet-400",
-  },
-  "연금/퇴직": {
-    border: "border-l-orange-400",
-    badge: "bg-orange-500/10 text-orange-400 border-orange-500/20",
-    text: "text-orange-400",
-  },
-  "보험/기타": {
-    border: "border-l-pink-400",
-    badge: "bg-pink-500/10 text-pink-400 border-pink-500/20",
-    text: "text-pink-400",
-  },
+const CAT: Record<AssetCategory, { borderColor: string; color: string }> = {
+  "미국주식": { borderColor: "#00d4ff", color: "#00d4ff" },
+  "한국주식": { borderColor: "#00ff88", color: "#00ff88" },
+  "해외주식": { borderColor: "#4488ff", color: "#4488ff" },
+  "국내ETF":  { borderColor: "#00ccaa", color: "#00ccaa" },
+  "해외ETF":  { borderColor: "#2266ff", color: "#2266ff" },
+  "채권":     { borderColor: "#6699bb", color: "#6699bb" },
+  "Crypto":   { borderColor: "#ffaa00", color: "#ffaa00" },
+  "KRX금현물":{ borderColor: "#ff8800", color: "#ff8800" },
+  "금/원자재":{ borderColor: "#ffcc00", color: "#ffcc00" },
+  "부동산":   { borderColor: "#ff4466", color: "#ff4466" },
+  "현금/예금":{ borderColor: "#aa88ff", color: "#aa88ff" },
+  "연금/퇴직":{ borderColor: "#ff6600", color: "#ff6600" },
+  "보험/기타":{ borderColor: "#ff44aa", color: "#ff44aa" },
 };
 
-// ── 포맷 유틸 ─────────────────────────────────────────────────────────────────
+// ── Format utils ──────────────────────────────────────────────────────────────
 
 function fmtValue(value: number | undefined, currency: string | undefined): string {
   if (value === undefined || value === 0) return "—";
-  if (currency === "KRW")
-    return "₩" + Math.round(value).toLocaleString("ko-KR");
-  return (
-    "$" +
-    value.toLocaleString("en-US", {
-      minimumFractionDigits: 2,
-      maximumFractionDigits: 2,
-    })
-  );
+  if (currency === "KRW") return "₩" + Math.round(value).toLocaleString("ko-KR");
+  return "$" + value.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 }
 
 function fmtShares(shares: number, category: AssetCategory): string {
@@ -102,37 +43,28 @@ function fmtShares(shares: number, category: AssetCategory): string {
   return shares.toLocaleString("en-US");
 }
 
-function deviationStyle(
-  pct: number,
-  threshold: number
-): { text: string; bg: string } {
+function deviationStyle(pct: number, threshold: number): { color: string; bg: string } {
   const abs = Math.abs(pct);
-  if (abs <= threshold * 0.5)
-    return { text: "text-emerald-400", bg: "bg-emerald-500/10" };
-  if (abs <= threshold)
-    return { text: "text-amber-400", bg: "bg-amber-500/10" };
-  return { text: "text-rose-400", bg: "bg-rose-500/10" };
+  if (abs <= threshold * 0.5) return { color: "#00ff88", bg: "rgba(0,255,136,0.08)" };
+  if (abs <= threshold)       return { color: "#ffaa00", bg: "rgba(255,170,0,0.08)" };
+  return                             { color: "#ff2244", bg: "rgba(255,34,68,0.08)" };
 }
 
-function statusBadge(
-  result: AssetRebalanceResult,
-  threshold: number
-): { label: string; cls: string } {
+function statusBadge(result: AssetRebalanceResult, threshold: number): { label: string; color: string; bg: string; border: string } {
   if (result.targetWeight === 0)
-    return { label: "미설정", cls: "text-[#787e88] bg-white/[0.04]" };
+    return { label: "UNSET",  color: "rgba(0,212,255,0.3)", bg: "rgba(0,212,255,0.04)", border: "transparent" };
   const abs = Math.abs(result.deviationPct);
   if (result.needsRebalancing) {
-    const isBuy = result.rebalanceAmount > 0;
-    return isBuy
-      ? { label: "매수 필요", cls: "text-emerald-400 bg-emerald-500/10 border border-emerald-500/20" }
-      : { label: "매도 필요", cls: "text-rose-400 bg-rose-500/10 border border-rose-500/20" };
+    return result.rebalanceAmount > 0
+      ? { label: "BUY",  color: "#00d4ff", bg: "rgba(0,212,255,0.08)", border: "rgba(0,212,255,0.25)" }
+      : { label: "SELL", color: "#ff2244", bg: "rgba(255,34,68,0.08)", border: "rgba(255,34,68,0.25)" };
   }
   if (abs > threshold * 0.5)
-    return { label: "주의", cls: "text-amber-400 bg-amber-500/10 border border-amber-500/20" };
-  return { label: "정상", cls: "text-emerald-400 bg-emerald-500/10 border border-emerald-500/20" };
+    return { label: "WATCH", color: "#ffaa00", bg: "rgba(255,170,0,0.08)", border: "rgba(255,170,0,0.25)" };
+  return   { label: "OK",   color: "#00ff88", bg: "rgba(0,255,136,0.08)", border: "rgba(0,255,136,0.2)" };
 }
 
-// ── 메인 컴포넌트 ─────────────────────────────────────────────────────────────
+// ── Main component ────────────────────────────────────────────────────────────
 
 export default function AssetTable() {
   const { assets, thresholdPct, updateShares, updateAsset, removeAsset, updateManualValue, exchangeRate } =
@@ -150,33 +82,28 @@ export default function AssetTable() {
     setEditing({ id: asset.id, value: String(asset.shares) });
     setEditingRatio(null);
   }
-
   function commitEdit() {
     if (!editing) return;
     const n = Number(editing.value.replace(/,/g, ""));
     if (!isNaN(n) && n >= 0) updateShares(editing.id, n);
     setEditing(null);
   }
-
   function startEditRatio(asset: Asset) {
     setEditingRatio({ id: asset.id, value: asset.targetRatio > 0 ? String(asset.targetRatio) : "" });
     setEditing(null);
     setEditingManual(null);
   }
-
   function startEditManual(asset: Asset) {
     setEditingManual({ id: asset.id, value: String(asset.manualValue ?? asset.currentValue ?? 0) });
     setEditing(null);
     setEditingRatio(null);
   }
-
   function commitEditManual() {
     if (!editingManual) return;
     const n = Number(editingManual.value.replace(/[,₩\s]/g, ""));
     if (!isNaN(n) && n >= 0) updateManualValue(editingManual.id, n);
     setEditingManual(null);
   }
-
   function commitEditRatio() {
     if (!editingRatio) return;
     const n = parseFloat(editingRatio.value);
@@ -184,67 +111,80 @@ export default function AssetTable() {
     updateAsset(editingRatio.id, { targetRatio: clamped });
     setEditingRatio(null);
   }
-
   function confirmDelete(id: string) {
-    if (deletingId === id) {
-      removeAsset(id);
-      setDeletingId(null);
-    } else {
-      setDeletingId(id);
-      setTimeout(() => setDeletingId(null), 3000);
-    }
+    if (deletingId === id) { removeAsset(id); setDeletingId(null); }
+    else { setDeletingId(id); setTimeout(() => setDeletingId(null), 3000); }
   }
 
-  // 카테고리 순서로 정렬
   const ORDER: AssetCategory[] = [
     "미국주식", "한국주식", "해외주식", "국내ETF", "해외ETF",
     "채권", "Crypto", "KRX금현물", "금/원자재", "부동산", "현금/예금", "연금/퇴직", "보험/기타",
   ];
-  const sorted = [...assets].sort(
-    (a, b) => ORDER.indexOf(a.category) - ORDER.indexOf(b.category)
-  );
+  const sorted = [...assets].sort((a, b) => ORDER.indexOf(a.category) - ORDER.indexOf(b.category));
+
+  const inputStyle: React.CSSProperties = {
+    background: "rgba(0,8,18,0.9)",
+    border: "1px solid rgba(0,212,255,0.3)",
+    color: "#b8e0f0",
+    fontFamily: "var(--font-mono)",
+    outline: "none",
+  };
 
   return (
-    <div className="rounded-xl border border-white/[0.06] bg-[#0a1c2d]/80 backdrop-blur-sm overflow-hidden animate-fade-in-up">
-      {/* 헤더 */}
-      <div className="px-5 py-3.5 border-b border-white/[0.06] flex items-center justify-between">
+    <div
+      className="relative overflow-hidden animate-fade-in-up"
+      style={{
+        background: "linear-gradient(135deg, rgba(0,12,24,0.96) 0%, rgba(0,7,16,0.99) 100%)",
+        border: "1px solid rgba(0,212,255,0.12)",
+        boxShadow: "0 0 0 1px rgba(0,212,255,0.04), inset 0 0 80px rgba(0,60,120,0.04), 0 8px 40px rgba(0,0,8,0.9)",
+      }}
+    >
+      {/* Top glow */}
+      <div className="absolute top-0 inset-x-0 h-px z-10"
+        style={{ background: "linear-gradient(90deg, transparent, rgba(0,212,255,0.5), transparent)" }} />
+      {/* Scan line */}
+      <div className="absolute inset-x-0 h-px z-10 pointer-events-none"
+        style={{
+          background: "linear-gradient(90deg, transparent, rgba(0,212,255,0.3), transparent)",
+          animation: "hud-scan 8s linear infinite",
+          top: "-2px",
+        }}
+      />
+      {/* Corners */}
+      <div className="absolute top-0 left-0 w-3 h-3 z-10" style={{ borderTop: "1px solid rgba(0,212,255,0.5)", borderLeft: "1px solid rgba(0,212,255,0.5)" }} />
+      <div className="absolute top-0 right-0 w-3 h-3 z-10" style={{ borderTop: "1px solid rgba(0,212,255,0.5)", borderRight: "1px solid rgba(0,212,255,0.5)" }} />
+      <div className="absolute bottom-0 left-0 w-3 h-3 z-10" style={{ borderBottom: "1px solid rgba(0,212,255,0.5)", borderLeft: "1px solid rgba(0,212,255,0.5)" }} />
+      <div className="absolute bottom-0 right-0 w-3 h-3 z-10" style={{ borderBottom: "1px solid rgba(0,212,255,0.5)", borderRight: "1px solid rgba(0,212,255,0.5)" }} />
+
+      {/* Header */}
+      <div className="px-5 py-3.5 flex items-center justify-between"
+        style={{ borderBottom: "1px solid rgba(0,212,255,0.1)" }}>
         <div className="flex items-center gap-2">
-          <span className="w-1.5 h-1.5 rounded-full bg-[#00c389]" />
-          <span className="text-xs font-semibold uppercase tracking-widest text-[#787e88]">
-            보유 자산 목록
+          <span className="w-1.5 h-1.5 rounded-full" style={{ background: "#00d4ff", boxShadow: "0 0 6px #00d4ff" }} />
+          <span className="font-display text-[10px] tracking-[0.35em] uppercase" style={{ color: "rgba(0,212,255,0.45)" }}>
+            ASSET REGISTRY
           </span>
         </div>
-        <span className="font-mono text-xs text-[#787e88]/50">{assets.length} items</span>
+        <span className="font-mono text-[9px]" style={{ color: "rgba(0,212,255,0.2)" }}>
+          {assets.length} RECORDS
+        </span>
       </div>
 
-      {/* 테이블 래퍼 */}
+      {/* Table */}
       <div className="overflow-x-auto">
         <table className="w-full text-sm min-w-[1060px]">
           <thead>
-            <tr className="border-b border-white/[0.06]">
-              {[
-                "티커",
-                "종목명",
-                "카테고리",
-                "보유수량",
-                "평가금액",
-                "현재비중",
-                "목표비중",
-                "괴리율",
-                "리밸런싱",
-                "상태",
-                "액션",
-              ].map((h) => (
-                <th
-                  key={h}
-                  className="px-4 py-3 text-left text-[10px] font-semibold uppercase tracking-widest text-[#787e88]/50 whitespace-nowrap"
-                >
-                  {h}
+            <tr style={{ borderBottom: "1px solid rgba(0,212,255,0.08)" }}>
+              {["TICKER", "NAME", "CATEGORY", "QTY", "VALUE", "WEIGHT", "TARGET", "DEVIATION", "REBALANCE", "STATUS", "ACTION"].map((h) => (
+                <th key={h} className="px-4 py-3 text-left whitespace-nowrap">
+                  <span className="font-display text-[9px] tracking-[0.3em] uppercase" style={{ color: "rgba(0,212,255,0.28)" }}>
+                    {h}
+                  </span>
                 </th>
               ))}
             </tr>
           </thead>
-          <tbody className="divide-y divide-white/[0.04]">
+          <tbody>
             {sorted.map((asset) => {
               const cat = CAT[asset.category];
               const result = resultMap[asset.id];
@@ -256,253 +196,246 @@ export default function AssetTable() {
               const hasPriceData = asset.currentValue !== undefined;
               const devStyle = result && hasPriceData && !isFixedAsset
                 ? deviationStyle(result.deviationPct, thresholdPct)
-                : { text: "text-[#787e88]/40", bg: "" };
+                : { color: "rgba(0,212,255,0.2)", bg: "" };
               const status = isFixedAsset
-                ? { label: "고정", cls: "text-teal-400 bg-teal-500/10 border border-teal-500/20" }
+                ? { label: "FIXED", color: "#00ccaa", bg: "rgba(0,204,170,0.08)", border: "rgba(0,204,170,0.25)" }
                 : result && hasPriceData
                 ? statusBadge(result, thresholdPct)
-                : { label: "—", cls: "text-[#787e88]/40" };
+                : { label: "—", color: "rgba(0,212,255,0.2)", bg: "", border: "transparent" };
 
               return (
                 <tr
                   key={asset.id}
-                  className={`row-hover border-l-2 ${cat.border} transition-colors ${
-                    isDeleting ? "bg-rose-500/5" : ""
-                  }`}
+                  className="row-hover transition-colors"
+                  style={{
+                    borderBottom: "1px solid rgba(0,212,255,0.05)",
+                    borderLeft: `2px solid ${cat.borderColor}`,
+                    background: isDeleting ? "rgba(255,34,68,0.04)" : undefined,
+                  }}
                 >
-                  {/* 티커 */}
+                  {/* Ticker */}
                   <td className="px-4 py-3.5 whitespace-nowrap">
                     <div className="flex items-center gap-2">
                       <AssetIcon ticker={asset.ticker} category={asset.category} size={24} />
-                      <span className="font-mono font-semibold text-[#edeff9] text-sm">
+                      <span className="font-mono font-bold text-sm" style={{ color: cat.color }}>
                         {asset.ticker}
                       </span>
                     </div>
                   </td>
 
-                  {/* 종목명 */}
+                  {/* Name */}
                   <td className="px-4 py-3.5">
-                    <span className="text-[#787e88] text-xs max-w-[160px] truncate block">
+                    <span className="text-xs max-w-[160px] truncate block" style={{ color: "rgba(184,224,240,0.55)" }}>
                       {asset.name}
                     </span>
                   </td>
 
-                  {/* 카테고리 */}
+                  {/* Category */}
                   <td className="px-4 py-3.5 whitespace-nowrap">
                     <span
-                      className={`inline-block px-2 py-0.5 rounded-md text-[10px] font-semibold border ${cat.badge}`}
+                      className="inline-block px-2 py-0.5 font-display text-[9px] tracking-[0.15em] uppercase"
+                      style={{
+                        color: cat.color,
+                        border: `1px solid ${cat.color}33`,
+                        background: `${cat.color}0d`,
+                      }}
                     >
                       {asset.category}
                     </span>
                   </td>
 
-                  {/* 보유수량 (인라인 편집) */}
+                  {/* Quantity */}
                   <td className="px-4 py-3.5 whitespace-nowrap">
                     {isEditing ? (
                       <div className="flex items-center gap-1.5">
                         <input
-                          autoFocus
-                          type="text"
+                          autoFocus type="text"
                           value={editing.value}
                           onChange={(e) => setEditing({ id: asset.id, value: e.target.value })}
-                          onKeyDown={(e) => {
-                            if (e.key === "Enter") commitEdit();
-                            if (e.key === "Escape") setEditing(null);
-                          }}
-                          className="w-24 bg-[#030e18] border border-[#00c389]/40 rounded-md px-2 py-1 font-mono text-xs text-[#edeff9] focus:outline-none focus:border-[#00c389]"
+                          onKeyDown={(e) => { if (e.key === "Enter") commitEdit(); if (e.key === "Escape") setEditing(null); }}
+                          className="w-24 px-2 py-1 text-xs"
+                          style={inputStyle}
                         />
-                        <button
-                          onClick={commitEdit}
-                          className="text-emerald-400 hover:text-emerald-300 transition-colors"
-                          title="저장"
-                        >
-                          <CheckIcon />
-                        </button>
-                        <button
-                          onClick={() => setEditing(null)}
-                          className="text-rose-400 hover:text-rose-300 transition-colors"
-                          title="취소"
-                        >
-                          <XIcon />
-                        </button>
+                        <button onClick={commitEdit} style={{ color: "#00ff88" }}><CheckIcon /></button>
+                        <button onClick={() => setEditing(null)} style={{ color: "#ff2244" }}><XIcon /></button>
                       </div>
                     ) : (
-                      <span className="font-mono text-xs text-[#edeff9]">
+                      <span className="font-mono text-xs" style={{ color: "#b8e0f0" }}>
                         {fmtShares(asset.shares, asset.category)}
                       </span>
                     )}
                   </td>
 
-                  {/* 평가금액 */}
+                  {/* Value */}
                   <td className="px-4 py-3.5 text-right">
                     {isFixedAsset ? (
                       isEditingManualThis ? (
                         <div className="flex items-center justify-end gap-1.5">
                           <input
-                            autoFocus
-                            type="text"
-                            inputMode="numeric"
+                            autoFocus type="text" inputMode="numeric"
                             value={editingManual!.value}
-                            onChange={(e) =>
-                              setEditingManual({ id: asset.id, value: e.target.value })
-                            }
-                            onKeyDown={(e) => {
-                              if (e.key === "Enter") commitEditManual();
-                              if (e.key === "Escape") setEditingManual(null);
-                            }}
+                            onChange={(e) => setEditingManual({ id: asset.id, value: e.target.value })}
+                            onKeyDown={(e) => { if (e.key === "Enter") commitEditManual(); if (e.key === "Escape") setEditingManual(null); }}
                             onBlur={commitEditManual}
-                            className="w-36 bg-[#030e18] border border-teal-500/40 rounded-md px-2 py-1 font-mono text-xs text-teal-300 text-right focus:outline-none focus:border-teal-400"
+                            className="w-36 px-2 py-1 text-xs text-right"
+                            style={{ ...inputStyle, border: "1px solid rgba(0,204,170,0.35)", color: "#00ccaa" }}
                           />
                         </div>
                       ) : (
-                        <button
-                          onClick={() => startEditManual(asset)}
-                          title="클릭하여 금액 수정"
-                          className="group flex flex-col items-end gap-0.5 w-full hover:text-teal-300 transition-colors"
-                        >
-                          <span className="font-mono text-xs text-[#edeff9] group-hover:text-teal-300 transition-colors">
+                        <button onClick={() => startEditManual(asset)} title="클릭하여 금액 수정"
+                          className="group flex flex-col items-end gap-0.5 w-full">
+                          <span className="font-mono text-xs group-hover:text-[#00ccaa] transition-colors" style={{ color: "#b8e0f0" }}>
                             {asset.currentValue !== undefined && asset.currentValue > 0
                               ? `₩${Math.round(asset.currentValue).toLocaleString("ko-KR")}`
                               : "—"}
                           </span>
-                          <span className="font-mono text-[9px] text-teal-500/50 group-hover:text-teal-400/80 transition-colors italic">
-                            ✎ 클릭하여 수정
+                          <span className="font-mono text-[9px] italic" style={{ color: "rgba(0,204,170,0.35)" }}>
+                            ✎ EDIT
                           </span>
                         </button>
                       )
                     ) : asset.currentValue !== undefined && asset.currentValue > 0 ? (
                       <div className="flex flex-col items-end gap-0.5">
-                        <span className="font-mono text-xs text-[#edeff9]">
+                        <span className="font-mono text-xs" style={{ color: "#b8e0f0" }}>
                           {fmtValue(asset.currentValue, asset.currency)}
                         </span>
-                        <span className="font-mono text-[10px] text-[#787e88]/50">
+                        <span className="font-mono text-[10px]" style={{ color: "rgba(0,212,255,0.3)" }}>
                           {asset.currency === "USD"
                             ? `(₩${Math.round(asset.currentValue * exchangeRate).toLocaleString("ko-KR")})`
                             : `($${(asset.currentValue / exchangeRate).toLocaleString("en-US", { maximumFractionDigits: 0 })})`}
                         </span>
                       </div>
                     ) : (
-                      <span className="font-mono text-xs text-[#787e88]/40">
-                        {["미국주식", "해외주식", "해외ETF", "Crypto"].includes(asset.category)
-                          ? "$0.00"
-                          : "₩0"}
+                      <span className="font-mono text-xs" style={{ color: "rgba(0,212,255,0.2)" }}>
+                        {["미국주식", "해외주식", "해외ETF", "Crypto"].includes(asset.category) ? "$0.00" : "₩0"}
                       </span>
                     )}
                   </td>
 
-                  {/* 현재비중 */}
+                  {/* Current weight */}
                   <td className="px-4 py-3.5 whitespace-nowrap">
                     {result && result.currentWeight > 0 ? (
                       <div className="flex items-center gap-2">
-                        <div className="w-16 h-1 bg-white/[0.06] rounded-full overflow-hidden">
+                        <div className="w-16 h-0.5 rounded-full overflow-hidden" style={{ background: "rgba(0,212,255,0.1)" }}>
                           <div
-                            className={`h-full rounded-full ${cat.text.replace("text-", "bg-")}`}
-                            style={{ width: `${Math.min(result.currentWeight * 100 * 2, 100)}%` }}
+                            className="h-full rounded-full"
+                            style={{
+                              width: `${Math.min(result.currentWeight * 100 * 2, 100)}%`,
+                              background: cat.color,
+                              boxShadow: `0 0 4px ${cat.color}`,
+                            }}
                           />
                         </div>
-                        <span className="font-mono text-xs text-[#edeff9]">
+                        <span className="font-mono text-xs" style={{ color: "#b8e0f0" }}>
                           {(result.currentWeight * 100).toFixed(1)}%
                         </span>
                       </div>
                     ) : (
-                      <span className="font-mono text-xs text-[#787e88]/40">—</span>
+                      <span className="font-mono text-xs" style={{ color: "rgba(0,212,255,0.2)" }}>—</span>
                     )}
                   </td>
 
-                  {/* 목표비중 (클릭 편집) */}
+                  {/* Target ratio */}
                   <td className="px-4 py-3.5 whitespace-nowrap">
                     {isEditingRatio ? (
                       <div className="flex items-center gap-1.5">
                         <input
-                          autoFocus
-                          type="number"
-                          min={0}
-                          max={100}
-                          step={0.1}
+                          autoFocus type="number" min={0} max={100} step={0.1}
                           value={editingRatio.value}
-                          onChange={(e) =>
-                            setEditingRatio({ id: asset.id, value: e.target.value })
-                          }
-                          onKeyDown={(e) => {
-                            if (e.key === "Enter" || e.key === "Tab") {
-                              e.preventDefault();
-                              commitEditRatio();
-                            }
-                            if (e.key === "Escape") setEditingRatio(null);
-                          }}
+                          onChange={(e) => setEditingRatio({ id: asset.id, value: e.target.value })}
+                          onKeyDown={(e) => { if (e.key === "Enter" || e.key === "Tab") { e.preventDefault(); commitEditRatio(); } if (e.key === "Escape") setEditingRatio(null); }}
                           onBlur={commitEditRatio}
-                          className="w-20 bg-[#030e18] border border-[#485cc7]/40 rounded-md px-2 py-1 font-mono text-xs text-[#edeff9] focus:outline-none focus:border-[#485cc7]"
+                          className="w-20 px-2 py-1 text-xs"
+                          style={{ ...inputStyle, border: "1px solid rgba(170,136,255,0.4)" }}
                         />
-                        <span className="text-[#787e88]/50 text-xs">%</span>
+                        <span className="font-mono text-xs" style={{ color: "rgba(0,212,255,0.3)" }}>%</span>
                       </div>
                     ) : (
                       <button
                         onClick={() => startEditRatio(asset)}
                         title="클릭하여 목표비중 입력"
-                        className="group flex items-center justify-between gap-2 w-full px-2 py-1 rounded border border-transparent hover:border-[#485cc7]/30 hover:bg-[#485cc7]/5 transition-all"
+                        className="group flex items-center justify-between gap-2 w-full px-2 py-1 transition-all"
+                        style={{ border: "1px solid transparent" }}
+                        onMouseEnter={(e) => {
+                          (e.currentTarget as HTMLElement).style.border = "1px solid rgba(170,136,255,0.25)";
+                          (e.currentTarget as HTMLElement).style.background = "rgba(170,136,255,0.05)";
+                        }}
+                        onMouseLeave={(e) => {
+                          (e.currentTarget as HTMLElement).style.border = "1px solid transparent";
+                          (e.currentTarget as HTMLElement).style.background = "transparent";
+                        }}
                       >
                         {asset.targetRatio > 0 ? (
-                          <span className="font-mono text-xs text-[#edeff9] group-hover:text-[#c2c7e7] transition-colors">
+                          <span className="font-mono text-xs" style={{ color: "#b8e0f0" }}>
                             {asset.targetRatio.toFixed(1)}%
                           </span>
                         ) : (
-                          <span className="font-mono text-xs text-[#787e88]/40 group-hover:text-[#485cc7]/70 transition-colors italic">
-                            클릭하여 설정
+                          <span className="font-mono text-xs italic" style={{ color: "rgba(0,212,255,0.2)" }}>
+                            SET TARGET
                           </span>
                         )}
-                        <span className="opacity-0 group-hover:opacity-80 transition-opacity text-[#485cc7] flex-shrink-0">
+                        <span className="opacity-0 group-hover:opacity-70 transition-opacity" style={{ color: "#aa88ff" }}>
                           <PencilTinyIcon />
                         </span>
                       </button>
                     )}
                   </td>
 
-                  {/* 괴리율 — 시세 미조회 또는 고정 자산은 표시 안 함 */}
+                  {/* Deviation */}
                   <td className="px-4 py-3.5 whitespace-nowrap">
                     {result && asset.targetRatio > 0 && asset.currentValue !== undefined && !isFixedAsset ? (
                       <span
-                        className={`inline-block font-mono text-xs px-1.5 py-0.5 rounded ${devStyle.bg} ${devStyle.text}`}
+                        className="inline-block font-mono text-xs px-1.5 py-0.5"
+                        style={{ background: devStyle.bg, color: devStyle.color }}
                       >
                         {result.deviationPct >= 0 ? "+" : ""}
                         {result.deviationPct.toFixed(2)}%p
                       </span>
                     ) : (
-                      <span className="font-mono text-xs text-[#787e88]/40">—</span>
+                      <span className="font-mono text-xs" style={{ color: "rgba(0,212,255,0.2)" }}>—</span>
                     )}
                   </td>
 
-                  {/* 리밸런싱 — 시세 미조회 또는 고정 자산은 표시 안 함 */}
+                  {/* Rebalance */}
                   <td className="px-4 py-3.5 whitespace-nowrap">
                     {result && asset.targetRatio > 0 && asset.currentValue !== undefined && !isFixedAsset ? (
                       <RebalanceCell
-                        asset={asset}
-                        result={result}
-                        exchangeRate={exchangeRate}
+                        asset={asset} result={result} exchangeRate={exchangeRate}
                         onShowTooltip={(id, x, y) => setTooltip({ id, x, y })}
                         onHideTooltip={() => setTooltip(null)}
                       />
                     ) : (
-                      <span className="font-mono text-xs text-[#787e88]/40">—</span>
+                      <span className="font-mono text-xs" style={{ color: "rgba(0,212,255,0.2)" }}>—</span>
                     )}
                   </td>
 
-                  {/* 상태 */}
+                  {/* Status */}
                   <td className="px-4 py-3.5 whitespace-nowrap">
                     <span
-                      className={`inline-block text-[10px] font-semibold px-2 py-0.5 rounded-md ${status.cls}`}
+                      className="inline-block font-display text-[9px] tracking-[0.15em] uppercase px-2 py-0.5"
+                      style={{ color: status.color, background: status.bg, border: `1px solid ${status.border}` }}
                     >
                       {status.label}
                     </span>
                   </td>
 
-                  {/* 액션 */}
+                  {/* Action */}
                   <td className="px-4 py-3.5 whitespace-nowrap">
                     <div className="flex items-center gap-1.5">
                       {!isEditing && !isFixedAsset && (
                         <button
                           onClick={() => startEdit(asset)}
                           title="수량 수정"
-                          className="p-1.5 rounded-md text-[#787e88]/50 hover:text-[#00c389] hover:bg-[#00c389]/10 transition-all"
+                          className="p-1.5 transition-all"
+                          style={{ color: "rgba(0,212,255,0.3)" }}
+                          onMouseEnter={(e) => {
+                            (e.currentTarget as HTMLElement).style.color = "#00d4ff";
+                            (e.currentTarget as HTMLElement).style.background = "rgba(0,212,255,0.08)";
+                          }}
+                          onMouseLeave={(e) => {
+                            (e.currentTarget as HTMLElement).style.color = "rgba(0,212,255,0.3)";
+                            (e.currentTarget as HTMLElement).style.background = "transparent";
+                          }}
                         >
                           <PencilIcon />
                         </button>
@@ -510,11 +443,23 @@ export default function AssetTable() {
                       <button
                         onClick={() => confirmDelete(asset.id)}
                         title={isDeleting ? "한 번 더 클릭 시 삭제" : "삭제"}
-                        className={`p-1.5 rounded-md transition-all ${
-                          isDeleting
-                            ? "text-rose-400 bg-rose-500/20 animate-pulse"
-                            : "text-[#787e88]/50 hover:text-rose-400 hover:bg-rose-500/10"
-                        }`}
+                        className={`p-1.5 transition-all ${isDeleting ? "animate-pulse" : ""}`}
+                        style={{
+                          color: isDeleting ? "#ff2244" : "rgba(0,212,255,0.3)",
+                          background: isDeleting ? "rgba(255,34,68,0.12)" : "transparent",
+                        }}
+                        onMouseEnter={(e) => {
+                          if (!isDeleting) {
+                            (e.currentTarget as HTMLElement).style.color = "#ff2244";
+                            (e.currentTarget as HTMLElement).style.background = "rgba(255,34,68,0.08)";
+                          }
+                        }}
+                        onMouseLeave={(e) => {
+                          if (!isDeleting) {
+                            (e.currentTarget as HTMLElement).style.color = "rgba(0,212,255,0.3)";
+                            (e.currentTarget as HTMLElement).style.background = "transparent";
+                          }
+                        }}
                       >
                         <TrashIcon />
                       </button>
@@ -528,12 +473,17 @@ export default function AssetTable() {
       </div>
 
       {assets.length === 0 && (
-        <div className="py-16 text-center text-[#787e88]/50 text-sm">
-          보유 자산이 없습니다. 아래에서 종목을 추가하세요.
+        <div className="py-16 text-center">
+          <p className="font-display text-xs tracking-[0.3em] uppercase" style={{ color: "rgba(0,212,255,0.25)" }}>
+            NO ASSETS IN REGISTRY
+          </p>
+          <p className="font-mono text-[10px] mt-2" style={{ color: "rgba(0,212,255,0.15)" }}>
+            USE ADD ASSET PANEL TO INITIALIZE PORTFOLIO
+          </p>
         </div>
       )}
 
-      {/* 세금 툴팁 — overflow-x-auto 밖에서 fixed 렌더 */}
+      {/* Tax tooltip */}
       {tooltip && (() => {
         const asset = sorted.find((a) => a.id === tooltip.id);
         const result = asset ? resultMap[asset.id] : null;
@@ -541,21 +491,13 @@ export default function AssetTable() {
         const absKrw = Math.abs(result.rebalanceAmount);
         const sellValue = asset.currency === "USD" ? absKrw / exchangeRate : absKrw;
         const tax = estimateSellTax(sellValue, asset.category, asset.currency ?? "KRW");
-        return (
-          <TaxTooltip
-            asset={asset}
-            tax={tax}
-            x={tooltip.x}
-            y={tooltip.y}
-            onClose={() => setTooltip(null)}
-          />
-        );
+        return <TaxTooltip asset={asset} tax={tax} x={tooltip.x} y={tooltip.y} onClose={() => setTooltip(null)} />;
       })()}
     </div>
   );
 }
 
-// ── 리밸런싱 셀 ──────────────────────────────────────────────────────────────
+// ── Rebalance cell ────────────────────────────────────────────────────────────
 
 type RebalanceCellProps = {
   asset: Asset;
@@ -567,44 +509,43 @@ type RebalanceCellProps = {
 
 function RebalanceCell({ asset, result, exchangeRate, onShowTooltip, onHideTooltip }: RebalanceCellProps) {
   const isSell = result.rebalanceAmount < 0;
-  // rebalanceAmount is KRW-normalized; convert back to asset currency for display
   const absKrw = Math.abs(result.rebalanceAmount);
   const amount = asset.currency === "USD" ? absKrw / exchangeRate : absKrw;
   const amountCurrency = asset.currency ?? "KRW";
-  const tax = isSell
-    ? estimateSellTax(amount, asset.category, amountCurrency)
-    : null;
-
-  const amtDisplay = isSell
-    ? `-${fmtValue(amount, amountCurrency)}`
-    : `+${fmtValue(amount, amountCurrency)}`;
+  const tax = isSell ? estimateSellTax(amount, asset.category, amountCurrency) : null;
+  const amtDisplay = isSell ? `-${fmtValue(amount, amountCurrency)}` : `+${fmtValue(amount, amountCurrency)}`;
 
   return (
     <div className="flex flex-col gap-0.5">
-      <span className={`font-mono text-xs ${isSell ? "text-rose-400" : "text-emerald-400"}`}>
+      <span className="font-mono text-xs" style={{ color: isSell ? "#ff2244" : "#00d4ff" }}>
         {amtDisplay}
       </span>
       {tax && isSell && (
         tax.applicable ? (
           <button
-            className="font-mono text-[10px] text-rose-400/70 hover:text-rose-300 transition-colors text-left cursor-help underline decoration-dotted decoration-rose-400/40 underline-offset-2"
+            className="font-mono text-[10px] text-left transition-colors cursor-help"
+            style={{ color: "rgba(255,34,68,0.55)", textDecoration: "underline dotted rgba(255,34,68,0.4)" }}
             onMouseEnter={(e) => {
               const rect = (e.currentTarget as HTMLElement).getBoundingClientRect();
               onShowTooltip(asset.id, rect.left, rect.bottom + 6);
+              (e.currentTarget as HTMLElement).style.color = "#ff2244";
             }}
-            onMouseLeave={onHideTooltip}
+            onMouseLeave={(e) => {
+              onHideTooltip();
+              (e.currentTarget as HTMLElement).style.color = "rgba(255,34,68,0.55)";
+            }}
           >
-            세금 -{fmtTaxAmount(tax.estimatedTax, tax.currency)}
+            TAX -{fmtTaxAmount(tax.estimatedTax, tax.currency)}
           </button>
         ) : (
-          <span className="font-mono text-[10px] text-violet-400/60">비과세 (ISA)</span>
+          <span className="font-mono text-[10px]" style={{ color: "rgba(170,136,255,0.5)" }}>TAX-FREE</span>
         )
       )}
     </div>
   );
 }
 
-// ── 세금 툴팁 ─────────────────────────────────────────────────────────────────
+// ── Tax tooltip ───────────────────────────────────────────────────────────────
 
 type TaxTooltipProps = {
   asset: Asset;
@@ -615,54 +556,41 @@ type TaxTooltipProps = {
 };
 
 function TaxTooltip({ asset, tax, x, y }: TaxTooltipProps) {
-  const rows: { label: string; value: string; cls?: string }[] = [
-    {
-      label: "매도 예상",
-      value: fmtTaxAmount(tax.sellValue, tax.currency),
-      cls: "text-[#edeff9]",
-    },
-    {
-      label: "연간 공제 한도",
-      value: fmtTaxAmount(tax.deductionLimit, tax.currency),
-      cls: "text-emerald-400",
-    },
-    {
-      label: "과세 표준",
-      value: fmtTaxAmount(tax.taxableGain, tax.currency),
-      cls: "text-amber-400",
-    },
-    {
-      label: `예상 세금 (${(tax.taxRate * 100).toFixed(0)}%)`,
-      value: `-${fmtTaxAmount(tax.estimatedTax, tax.currency)}`,
-      cls: "text-rose-400 font-semibold",
-    },
-    {
-      label: "공제 잔여액",
-      value: fmtTaxAmount(tax.deductionRemaining, tax.currency),
-      cls: tax.deductionRemaining > 0 ? "text-emerald-400" : "text-[#787e88]/50",
-    },
+  const rows: { label: string; value: string; color?: string }[] = [
+    { label: "SELL VALUE",   value: fmtTaxAmount(tax.sellValue, tax.currency),       color: "#b8e0f0" },
+    { label: "DEDUCTION",    value: fmtTaxAmount(tax.deductionLimit, tax.currency),   color: "#00ff88" },
+    { label: "TAXABLE GAIN", value: fmtTaxAmount(tax.taxableGain, tax.currency),      color: "#ffaa00" },
+    { label: `TAX RATE ${(tax.taxRate * 100).toFixed(0)}%`, value: `-${fmtTaxAmount(tax.estimatedTax, tax.currency)}`, color: "#ff2244" },
+    { label: "DEDUCT REMAINING", value: fmtTaxAmount(tax.deductionRemaining, tax.currency), color: tax.deductionRemaining > 0 ? "#00ff88" : "rgba(0,212,255,0.3)" },
   ];
-
   return (
     <div
-      className="fixed z-50 bg-[#030e18] border border-white/[0.08] rounded-xl shadow-2xl p-4 min-w-[230px] pointer-events-none"
-      style={{ left: Math.min(x, window.innerWidth - 250), top: y }}
+      className="fixed z-50 p-4 min-w-[230px] pointer-events-none"
+      style={{
+        left: Math.min(x, window.innerWidth - 250),
+        top: y,
+        background: "rgba(0,8,18,0.98)",
+        border: "1px solid rgba(0,212,255,0.2)",
+        boxShadow: "0 0 30px rgba(0,0,8,0.9), 0 0 0 1px rgba(0,212,255,0.04)",
+      }}
     >
-      <p className="text-[10px] font-semibold uppercase tracking-widest text-[#787e88]/50 mb-3">
-        {asset.ticker} 세금 간이 추정
+      <p className="font-display text-[9px] tracking-[0.35em] uppercase mb-3" style={{ color: "rgba(0,212,255,0.4)" }}>
+        {asset.ticker} TAX ESTIMATE
       </p>
       <div className="space-y-1.5 mb-3">
         {rows.map((row) => (
           <div key={row.label} className="flex justify-between items-center gap-6">
-            <span className="text-[#787e88] text-[11px]">{row.label}</span>
-            <span className={`font-mono text-[11px] ${row.cls ?? "text-[#edeff9]"}`}>
+            <span className="font-display text-[9px] tracking-[0.1em] uppercase" style={{ color: "rgba(0,212,255,0.4)" }}>
+              {row.label}
+            </span>
+            <span className="font-mono text-[11px]" style={{ color: row.color ?? "#b8e0f0" }}>
               {row.value}
             </span>
           </div>
         ))}
       </div>
-      <div className="border-t border-white/[0.06] pt-2.5">
-        <p className="text-[#787e88]/50 text-[10px] leading-relaxed whitespace-pre-line">
+      <div className="pt-2.5" style={{ borderTop: "1px solid rgba(0,212,255,0.1)" }}>
+        <p className="font-mono text-[9px] leading-relaxed whitespace-pre-line" style={{ color: "rgba(0,212,255,0.3)" }}>
           {TAX_NOTE[asset.category]}
         </p>
       </div>
@@ -670,7 +598,7 @@ function TaxTooltip({ asset, tax, x, y }: TaxTooltipProps) {
   );
 }
 
-// ── 아이콘 ────────────────────────────────────────────────────────────────────
+// ── Icons ─────────────────────────────────────────────────────────────────────
 
 function PencilIcon() {
   return (
@@ -680,7 +608,6 @@ function PencilIcon() {
     </svg>
   );
 }
-
 function PencilTinyIcon() {
   return (
     <svg className="w-2.5 h-2.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -689,7 +616,6 @@ function PencilTinyIcon() {
     </svg>
   );
 }
-
 function TrashIcon() {
   return (
     <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -698,7 +624,6 @@ function TrashIcon() {
     </svg>
   );
 }
-
 function CheckIcon() {
   return (
     <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -706,7 +631,6 @@ function CheckIcon() {
     </svg>
   );
 }
-
 function XIcon() {
   return (
     <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
