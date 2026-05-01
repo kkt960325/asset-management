@@ -28,11 +28,19 @@ export function getLastDebugInfo() {
 export const YAHOO_TICKER_MAP: Record<string, string> = {
   // KRX 금현물 — GC=F(COMEX USD/oz) → route.ts에서 KRW/g으로 환산
   "KRX금현물": "GC=F",
+  // 실물금·골드뱅킹 별칭 — 동일하게 GC=F 기준 KRW/g 환산
+  // 클라이언트 응답 시 yahooToInternal 역매핑으로 원래 키("금 99.99_1KG")로 복원됨
+  "금 99.99_1KG": "GC=F",
 };
 
-/** KRX 6자리 숫자 코드인지 확인 (한국 주식·ETF 자동 인식) */
+/**
+ * KRX 6자리 코드인지 확인.
+ * 순수 숫자(005930)뿐 아니라 영문 혼합(0182S0) ETF 코드도 인식한다.
+ * 규칙: 첫 자리 숫자 + 이후 5자리 영숫자, 총 6글자.
+ * → 미국 주식 티커(AAPL, 4글자), 암호화폐(BTC, 3글자)와 겹치지 않음.
+ */
 function isKrxCode(ticker: string): boolean {
-  return /^\d{6}$/.test(ticker);
+  return /^[0-9][0-9A-Za-z]{5}$/.test(ticker);
 }
 
 /** 시세 조회 대상에서 제외할 카테고리 (manualValue = 평가금액) */
@@ -56,8 +64,9 @@ export async function fetchAssetPrices(marketAssets: AssetForPrice[]): Promise<{
     marketAssets.map(({ ticker, category }) => {
       const mapped = YAHOO_TICKER_MAP[ticker];
       if (mapped) return [ticker, mapped];
-      // KRX 6자리 코드 → 자동으로 .KS 심볼로 변환 (네이버 금융 조회)
-      if (isKrxCode(ticker)) return [ticker, `${ticker}.KS`];
+      // KRX 6자리 코드 → 대문자로 정규화 후 .KS 접미사 추가 (네이버 금융 조회)
+      // 영문 소문자(0182s0)로 입력돼도 Naver가 인식하는 대문자(0182S0.KS)로 변환
+      if (isKrxCode(ticker)) return [ticker, `${ticker.toUpperCase()}.KS`];
       // Crypto: "BTC" → "BTC-USD", "BTC-USD" → "BTC-USD" (이미 있으면 그대로)
       if (category === "Crypto") {
         return [ticker, ticker.includes("-") ? ticker : `${ticker}-USD`];

@@ -50,9 +50,9 @@ const USDKRW_FALLBACK = 1_400;
 
 // ── 네이버 금융 동적 조회 ─────────────────────────────────────────────────────
 // Yahoo Finance DB 미등재 국내 주식·ETF는 "{6자리코드}.KS" 형식으로 요청됨.
-// .KS 접미사를 제거하면 네이버 금융 6자리 코드가 된다 (하드코딩 불필요).
+// .KS 접미사를 제거하고 대문자로 정규화한다 (네이버 API는 대문자 코드 사용).
 function getNaverCode(ksSymbol: string): string {
-  return ksSymbol.replace(/\.KS$/, "");
+  return ksSymbol.replace(/\.KS$/i, "").toUpperCase();
 }
 
 // ── 응답 타입 ─────────────────────────────────────────────────────────────────
