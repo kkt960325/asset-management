@@ -22,7 +22,7 @@ const jetbrainsMono = JetBrains_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "ASSET_MGR // J.A.R.V.I.S",
+  title: "SEUNGHANIST // J.A.R.V.I.S",
   description: "Financial Intelligence System",
 };
 
@@ -64,7 +64,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
                   className="font-display text-sm font-bold tracking-[0.2em] uppercase"
                   style={{ color: "#00d4ff", textShadow: "0 0 12px rgba(0,212,255,0.5)" }}
                 >
-                  ASSET_MGR
+                  SEUNGHANIST
                 </span>
               </div>
             </div>
@@ -107,7 +107,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
             className="text-center font-mono text-[9px] tracking-[0.35em] uppercase"
             style={{ color: "rgba(0,212,255,0.18)" }}
           >
-            // ALL DATA STORED LOCALLY · NO SERVER TRANSMISSION · SECURE //
+            // SEUNGHANIST · ALL DATA STORED LOCALLY · NO SERVER TRANSMISSION · SECURE //
           </p>
         </footer>
       </body>

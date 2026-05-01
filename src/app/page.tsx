@@ -74,35 +74,25 @@ export default function Home() {
         {/* Main headline */}
         <div className="flex flex-col">
           <h1
-            className="font-display font-black uppercase leading-[0.86]"
+            className="font-display font-black uppercase leading-[0.88] animate-data-flicker"
             style={{
-              fontSize: "clamp(3.2rem, 9vw, 8rem)",
-              color: "#b8e0f0",
-              letterSpacing: "-0.02em",
-            }}
-          >
-            FINANCIAL
-          </h1>
-          <h1
-            className="font-display font-black uppercase leading-[0.86] animate-data-flicker"
-            style={{
-              fontSize: "clamp(3.2rem, 9vw, 8rem)",
+              fontSize: "clamp(3.4rem, 10vw, 9.5rem)",
               color: "#00d4ff",
               letterSpacing: "-0.02em",
               textShadow: "0 0 40px rgba(0,212,255,0.35), 0 0 80px rgba(0,212,255,0.12)",
             }}
           >
-            INTELLIGENCE
+            SEUNG
           </h1>
           <h1
-            className="font-display font-black uppercase leading-[0.86]"
+            className="font-display font-black uppercase leading-[0.88]"
             style={{
-              fontSize: "clamp(3.2rem, 9vw, 8rem)",
+              fontSize: "clamp(3.4rem, 10vw, 9.5rem)",
               color: "#b8e0f0",
               letterSpacing: "-0.02em",
             }}
           >
-            SYSTEM
+            HANIST
           </h1>
         </div>
 
