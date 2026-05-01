@@ -4,6 +4,17 @@ import type { Asset, AssetCategory, NewAssetInput, PriceData, ValueSnapshot } fr
 import { MANUAL_CATEGORIES } from "./types";
 import { calcRebalance, type RebalanceSummary } from "./rebalancer";
 
+// ── Ticker normalization ──────────────────────────────────────────────────────
+// Strips exchange suffixes (.KS, .KQ, .KN) and crypto suffix (-USD), uppercases.
+// Used in updatePrices to match API response keys to store asset tickers
+// regardless of case or suffix variations.
+function normalizeTicker(t: string): string {
+  return t
+    .toUpperCase()
+    .replace(/\.(KS|KQ|KN)$/i, "")
+    .replace(/-USD$/i, "");
+}
+
 // ── 스토어 타입 ───────────────────────────────────────────────────────────────
 
 type AssetStore = {
@@ -135,19 +146,46 @@ export const useAssetStore = create<AssetStore>()(
 
       updatePrices: (prices) =>
         set((state) => {
+          // Build normalized lookup so matching is case-insensitive and suffix-tolerant.
+          // Each API price key is stored under: exact, uppercase, and fully normalized form.
+          const lookup = new Map<string, PriceData>();
+          for (const [key, data] of Object.entries(prices)) {
+            lookup.set(key, data);                  // exact (as returned by API)
+            lookup.set(key.toUpperCase(), data);    // uppercase variant
+            lookup.set(normalizeTicker(key), data); // strip .KS/.KQ/-USD + uppercase
+          }
+
           const updated = state.assets.map((a) => {
             // Skip categories that are always manually valued — no market price lookup
             if (MANUAL_CATEGORIES.has(a.category)) return a;
-            const data = prices[a.ticker] ?? prices[`${a.ticker}-USD`];
-            // No new price → keep existing currentValue (preserves last-known price)
+
+            // Try progressively looser matches:
+            // 1. exact ticker  2. ticker + "-USD" (crypto fallback)
+            // 3. uppercase     4. fully normalized (suffix-stripped)
+            const data =
+              lookup.get(a.ticker) ??
+              lookup.get(`${a.ticker}-USD`) ??
+              lookup.get(a.ticker.toUpperCase()) ??
+              lookup.get(normalizeTicker(a.ticker));
+
+            // No price found → keep existing currentValue (preserves last-known data)
             if (!data) return a;
+
+            // Force numeric type — guard against string prices from any JSON edge case
+            const rawPrice = parseFloat(String(data.price));
+            if (isNaN(rawPrice)) {
+              // Tag as parse error; UI shows "ERR" so the issue is visible and traceable
+              return { ...a, currentPrice: NaN as number, currentValue: NaN as number };
+            }
+
             return {
               ...a,
-              currentPrice: data.price,
-              currentValue: a.shares * data.price,
+              currentPrice: rawPrice,
+              currentValue: (a.shares ?? 0) * rawPrice,
               currency: data.currency,
             };
           });
+
           return {
             assets: updated,
             rebalanceAlert: calcRebalance(updated, state.thresholdPct, state.exchangeRate).needsRebalancing,

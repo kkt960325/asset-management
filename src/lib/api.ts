@@ -5,6 +5,20 @@ import { useAssetStore } from "./store";
 import type { PriceData } from "./types";
 import type { PricesApiResponse } from "@/app/api/prices/route";
 
+// ── Client-side debug cache ──────────────────────────────────────────────────
+// Populated on every successful price fetch so window.debugAssets() can inspect
+// the last API response vs. what was actually stored.
+let _lastDebugInfo: {
+  priceMap: Record<string, PriceData>;
+  failed: string[];
+  fetchedAt: Date;
+  mock?: boolean;
+} | null = null;
+
+export function getLastDebugInfo() {
+  return _lastDebugInfo;
+}
+
 /**
  * 내부 ticker → Yahoo Finance 심볼 매핑.
  *
@@ -109,6 +123,8 @@ export function useAssetPrices() {
       setLastUpdated(now);
       setLastPriceUpdate(now.getTime());
       setUsingMock(!!mock);
+      // Cache for window.debugAssets() diagnostic
+      _lastDebugInfo = { priceMap, failed, fetchedAt: now, mock };
       // Surface partial failures as a soft warning (non-blocking)
       if (mock) {
         setError("Yahoo Finance 차단 감지 — Mock 데이터로 표시 중 (실제 시세 아님)");
@@ -123,5 +139,5 @@ export function useAssetPrices() {
     }
   }, [assets, updatePrices, setExchangeRate, recordSnapshot, setLastPriceUpdate]);
 
-  return { refresh, loading, error, lastUpdated, usingMock };
+  return { refresh, loading, error, lastUpdated, usingMock, assets };
 }

@@ -294,7 +294,7 @@ export default function AssetTable({ loading = false }: { loading?: boolean }) {
                           </span>
                         </button>
                       )
-                    ) : asset.currentValue !== undefined && asset.currentValue > 0 ? (
+                    ) : (asset.currentValue !== undefined && !isNaN(asset.currentValue) && asset.currentValue > 0) ? (
                       <div className="flex flex-col items-end gap-0.5">
                         <span className="font-mono text-xs" style={{ color: "#b8e0f0" }}>
                           {fmtValue(asset.currentValue, asset.currency)}
@@ -305,6 +305,15 @@ export default function AssetTable({ loading = false }: { loading?: boolean }) {
                             : `($${(asset.currentValue / exchangeRate).toLocaleString("en-US", { maximumFractionDigits: 0 })})`}
                         </span>
                       </div>
+                    ) : (asset.currentValue !== undefined && isNaN(asset.currentValue)) ? (
+                      // Price was received but parseFloat() failed — visible parse error
+                      <span
+                        className="font-mono text-xs font-bold"
+                        style={{ color: "#ff2244" }}
+                        title="가격 파싱 오류 — 콘솔에서 debugAssets()로 진단"
+                      >
+                        ERR
+                      </span>
                     ) : loading ? (
                       // Skeleton shimmer while fetching
                       <div className="flex flex-col items-end gap-1">
