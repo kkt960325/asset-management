@@ -6,7 +6,8 @@ export type AssetCategory =
   | "해외ETF"     // Overseas ETFs → Yahoo USD
   | "채권"        // Bonds (any exchange, auto-detected by ticker)
   | "Crypto"      // Cryptocurrency → Binance / CoinGecko
-  | "금/원자재"   // Gold & Commodities → Yahoo (GC=F, CL=F …)
+  | "KRX금현물"   // KRX 금시장 금 현물 → 비과세 (Yahoo GC=F → KRW/g)
+  | "금/원자재"   // 실물금·골드뱅킹·원자재 선물 → Yahoo (GC=F, CL=F …)
   | "부동산"      // Real Estate → manual entry
   | "현금/예금"   // Cash & Deposits → manual entry
   | "연금/퇴직"   // Pension & Retirement → manual entry
@@ -24,7 +25,7 @@ export interface Asset {
   id: string;
   ticker: string;
   name: string;
-  /** 보유 수량. 수동 자산(MANUAL_CATEGORIES)은 1 고정, 금/원자재는 g 단위 */
+  /** 보유 수량. 수동 자산(MANUAL_CATEGORIES)은 1 고정, 금 관련 카테고리는 g 단위 */
   shares: number;
   category: AssetCategory;
   /** 목표 비중 (0–100, %) */

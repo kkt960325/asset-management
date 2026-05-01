@@ -8,7 +8,7 @@ import { MANUAL_CATEGORIES } from "@/lib/types";
 const CATEGORIES: AssetCategory[] = [
   "미국주식", "한국주식", "해외주식",
   "국내ETF", "해외ETF", "채권",
-  "Crypto", "금/원자재",
+  "Crypto", "KRX금현물", "금/원자재",
   "부동산", "현금/예금", "연금/퇴직", "보험/기타",
 ];
 
@@ -126,7 +126,8 @@ export default function AddAssetForm() {
                 isFixed ? "강남 아파트"
                 : form.category === "한국주식" || form.category === "국내ETF" ? "005930"
                 : form.category === "Crypto" ? "BTC"
-                : form.category === "금/원자재" ? "KRX금현물"
+                : form.category === "KRX금현물" ? "KRX금현물"
+                : form.category === "금/원자재" ? "GC=F"
                 : "AAPL"
               }
               value={form.ticker}
@@ -147,6 +148,8 @@ export default function AddAssetForm() {
                 isFixed ? "선택 입력"
                 : form.category === "한국주식" || form.category === "국내ETF" ? "삼성전자"
                 : form.category === "Crypto" ? "Bitcoin"
+                : form.category === "KRX금현물" ? "KRX 금 현물"
+                : form.category === "금/원자재" ? "COMEX Gold"
                 : "Apple Inc."
               }
               value={form.name}

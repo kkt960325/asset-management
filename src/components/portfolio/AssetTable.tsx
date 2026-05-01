@@ -46,6 +46,11 @@ const CAT: Record<AssetCategory, { border: string; badge: string; text: string }
     badge: "bg-amber-500/10 text-amber-400 border-amber-500/20",
     text: "text-amber-400",
   },
+  "KRX금현물": {
+    border: "border-l-amber-500",
+    badge: "bg-amber-600/10 text-amber-500 border-amber-500/30",
+    text: "text-amber-500",
+  },
   "금/원자재": {
     border: "border-l-yellow-400",
     badge: "bg-yellow-500/10 text-yellow-400 border-yellow-500/20",
@@ -92,7 +97,7 @@ function fmtShares(shares: number, category: AssetCategory): string {
   if (MANUAL_CATEGORIES.has(category)) return "—";
   if (category === "Crypto")
     return shares.toLocaleString("en-US", { minimumFractionDigits: 0, maximumFractionDigits: 8 });
-  if (category === "금/원자재")
+  if (category === "금/원자재" || category === "KRX금현물")
     return shares.toLocaleString("en-US", { minimumFractionDigits: 0, maximumFractionDigits: 4 }) + " g";
   return shares.toLocaleString("en-US");
 }
@@ -192,7 +197,7 @@ export default function AssetTable() {
   // 카테고리 순서로 정렬
   const ORDER: AssetCategory[] = [
     "미국주식", "한국주식", "해외주식", "국내ETF", "해외ETF",
-    "채권", "Crypto", "금/원자재", "부동산", "현금/예금", "연금/퇴직", "보험/기타",
+    "채권", "Crypto", "KRX금현물", "금/원자재", "부동산", "현금/예금", "연금/퇴직", "보험/기타",
   ];
   const sorted = [...assets].sort(
     (a, b) => ORDER.indexOf(a.category) - ORDER.indexOf(b.category)

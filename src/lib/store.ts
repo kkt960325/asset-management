@@ -169,21 +169,22 @@ export const useAssetStore = create<AssetStore>()(
     }),
     {
       name: "asset-management-store",
-      version: 7,
+      version: 8,
       migrate: (persistedState: unknown, version: number) => {
+        let s = persistedState as { assets?: Asset[]; [key: string]: unknown };
+
         if (version <= 6) {
-          // v6 → v7: 카테고리 이름 마이그레이션
+          // v6 → v8: 구 카테고리 이름 마이그레이션
           const OLD_TO_NEW: Record<string, AssetCategory> = {
             "미국주식": "미국주식",
-            "금현물":   "금/원자재",
+            "금현물":   "KRX금현물",   // 원래 KRX 금현물이었으므로 직접 복원
             "ISA-ETF":  "국내ETF",
             "주택청약": "현금/예금",
             "IRP":      "연금/퇴직",
             "Crypto":   "Crypto",
             "부동산":   "부동산",
           };
-          const s = persistedState as { assets?: Asset[]; [key: string]: unknown };
-          return {
+          s = {
             ...s,
             assets: (s.assets ?? []).map((a: Asset) => ({
               ...a,
@@ -191,7 +192,22 @@ export const useAssetStore = create<AssetStore>()(
             })),
           };
         }
-        return persistedState;
+
+        if (version === 7) {
+          // v7 → v8: ticker "KRX금현물"이면 "금/원자재" → "KRX금현물" 복원
+          s = {
+            ...s,
+            assets: (s.assets ?? []).map((a: Asset) => ({
+              ...a,
+              category:
+                a.ticker === "KRX금현물" && a.category === "금/원자재"
+                  ? ("KRX금현물" as AssetCategory)
+                  : a.category,
+            })),
+          };
+        }
+
+        return s;
       },
     }
   )

@@ -13,6 +13,7 @@ const CAT: Record<AssetCategory, { color: string; label: string }> = {
   "해외ETF":    { color: "#60a5fa", label: "해외ETF" },
   "채권":       { color: "#94a3b8", label: "채권" },
   "Crypto":     { color: "#fbbf24", label: "Crypto" },
+  "KRX금현물":  { color: "#f59e0b", label: "KRX금현물" },
   "금/원자재":  { color: "#fcd34d", label: "금/원자재" },
   "부동산":     { color: "#fb7185", label: "부동산" },
   "현금/예금":  { color: "#a78bfa", label: "현금/예금" },

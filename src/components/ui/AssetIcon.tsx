@@ -11,7 +11,8 @@ const CAT_COLOR: Record<AssetCategory, string> = {
   "해외ETF":    "#60a5fa",  // blue-400
   "채권":       "#94a3b8",  // slate-400
   "Crypto":     "#fbbf24",  // amber-400
-  "금/원자재":  "#fcd34d",  // yellow-300
+  "KRX금현물":  "#f59e0b",  // amber-500 (진한 금색, KRX 비과세)
+  "금/원자재":  "#fcd34d",  // yellow-300 (연한 황금)
   "부동산":     "#fb7185",  // rose-400
   "현금/예금":  "#a78bfa",  // violet-400
   "연금/퇴직":  "#fb923c",  // orange-400
@@ -19,6 +20,13 @@ const CAT_COLOR: Record<AssetCategory, string> = {
 };
 
 const CAT_ICON: Partial<Record<AssetCategory, React.ReactNode>> = {
+  "KRX금현물": (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="w-3 h-3">
+      <rect x="3" y="8" width="18" height="8" rx="1" strokeLinecap="round"/>
+      <path strokeLinecap="round" strokeLinejoin="round" d="M6 8V6a2 2 0 012-2h8a2 2 0 012 2v2"/>
+      <path strokeLinecap="round" d="M9 12h6"/>
+    </svg>
+  ),
   "금/원자재": (
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="w-3 h-3">
       <path strokeLinecap="round" strokeLinejoin="round" d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/>
