@@ -21,8 +21,8 @@ function isKrxCode(ticker: string): boolean {
   return /^\d{6}$/.test(ticker);
 }
 
-/** 시세 조회 대상에서 제외할 카테고리 (잔액 또는 manualValue = 평가금액) */
-const NON_MARKET_CATEGORIES = new Set(["주택청약", "IRP", "부동산"]);
+/** 시세 조회 대상에서 제외할 카테고리 (manualValue = 평가금액) */
+const NON_MARKET_CATEGORIES = new Set(["부동산", "현금/예금", "연금/퇴직", "보험/기타"]);
 
 type AssetForPrice = { ticker: string; category: string };
 

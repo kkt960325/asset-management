@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useAssetStore, selectRebalanceSummary } from "@/lib/store";
 import type { Asset, AssetCategory } from "@/lib/types";
+import { MANUAL_CATEGORIES } from "@/lib/types";
 import type { AssetRebalanceResult } from "@/lib/rebalancer";
 import { estimateSellTax, fmtTaxAmount, TAX_NOTE } from "@/lib/tax";
 import { AssetIcon } from "@/components/ui/AssetIcon";
@@ -15,35 +16,60 @@ const CAT: Record<AssetCategory, { border: string; badge: string; text: string }
     badge: "bg-sky-500/10 text-sky-400 border-sky-500/20",
     text: "text-sky-400",
   },
-  "Crypto": {
-    border: "border-l-orange-400",
-    badge: "bg-orange-500/10 text-orange-400 border-orange-500/20",
-    text: "text-orange-400",
-  },
-  "금현물": {
-    border: "border-l-amber-400",
-    badge: "bg-amber-500/10 text-amber-400 border-amber-500/20",
-    text: "text-amber-400",
-  },
-  "ISA-ETF": {
-    border: "border-l-violet-400",
-    badge: "bg-violet-500/10 text-violet-400 border-violet-500/20",
-    text: "text-violet-400",
-  },
-  "주택청약": {
+  "한국주식": {
     border: "border-l-emerald-400",
     badge: "bg-emerald-500/10 text-emerald-400 border-emerald-500/20",
     text: "text-emerald-400",
   },
-  "IRP": {
+  "해외주식": {
+    border: "border-l-indigo-400",
+    badge: "bg-indigo-500/10 text-indigo-400 border-indigo-500/20",
+    text: "text-indigo-400",
+  },
+  "국내ETF": {
+    border: "border-l-teal-400",
+    badge: "bg-teal-500/10 text-teal-400 border-teal-500/20",
+    text: "text-teal-400",
+  },
+  "해외ETF": {
+    border: "border-l-blue-400",
+    badge: "bg-blue-500/10 text-blue-400 border-blue-500/20",
+    text: "text-blue-400",
+  },
+  "채권": {
     border: "border-l-slate-400",
     badge: "bg-slate-500/10 text-slate-400 border-slate-500/20",
     text: "text-slate-400",
   },
+  "Crypto": {
+    border: "border-l-amber-400",
+    badge: "bg-amber-500/10 text-amber-400 border-amber-500/20",
+    text: "text-amber-400",
+  },
+  "금/원자재": {
+    border: "border-l-yellow-400",
+    badge: "bg-yellow-500/10 text-yellow-400 border-yellow-500/20",
+    text: "text-yellow-400",
+  },
   "부동산": {
-    border: "border-l-teal-400",
-    badge: "bg-teal-500/10 text-teal-400 border-teal-500/20",
-    text: "text-teal-400",
+    border: "border-l-rose-400",
+    badge: "bg-rose-500/10 text-rose-400 border-rose-500/20",
+    text: "text-rose-400",
+  },
+  "현금/예금": {
+    border: "border-l-violet-400",
+    badge: "bg-violet-500/10 text-violet-400 border-violet-500/20",
+    text: "text-violet-400",
+  },
+  "연금/퇴직": {
+    border: "border-l-orange-400",
+    badge: "bg-orange-500/10 text-orange-400 border-orange-500/20",
+    text: "text-orange-400",
+  },
+  "보험/기타": {
+    border: "border-l-pink-400",
+    badge: "bg-pink-500/10 text-pink-400 border-pink-500/20",
+    text: "text-pink-400",
   },
 };
 
@@ -63,12 +89,11 @@ function fmtValue(value: number | undefined, currency: string | undefined): stri
 }
 
 function fmtShares(shares: number, category: AssetCategory): string {
-  if (category === "주택청약" || category === "IRP")
-    return "₩" + Math.round(shares).toLocaleString("ko-KR");
-  if (category === "부동산")
-    return "—";  // 부동산: 수량 개념 없음
+  if (MANUAL_CATEGORIES.has(category)) return "—";
   if (category === "Crypto")
     return shares.toLocaleString("en-US", { minimumFractionDigits: 0, maximumFractionDigits: 8 });
+  if (category === "금/원자재")
+    return shares.toLocaleString("en-US", { minimumFractionDigits: 0, maximumFractionDigits: 4 }) + " g";
   return shares.toLocaleString("en-US");
 }
 
@@ -165,7 +190,10 @@ export default function AssetTable() {
   }
 
   // 카테고리 순서로 정렬
-  const ORDER: AssetCategory[] = ["미국주식", "Crypto", "금현물", "ISA-ETF", "주택청약", "IRP", "부동산"];
+  const ORDER: AssetCategory[] = [
+    "미국주식", "한국주식", "해외주식", "국내ETF", "해외ETF",
+    "채권", "Crypto", "금/원자재", "부동산", "현금/예금", "연금/퇴직", "보험/기타",
+  ];
   const sorted = [...assets].sort(
     (a, b) => ORDER.indexOf(a.category) - ORDER.indexOf(b.category)
   );
@@ -217,7 +245,7 @@ export default function AssetTable() {
               const isEditing = editing?.id === asset.id;
               const isEditingRatio = editingRatio?.id === asset.id;
               const isDeleting = deletingId === asset.id;
-              const isFixedAsset = asset.category === "부동산";
+              const isFixedAsset = MANUAL_CATEGORIES.has(asset.category);
               const isEditingManualThis = editingManual?.id === asset.id;
               const hasPriceData = asset.currentValue !== undefined;
               const devStyle = result && hasPriceData && !isFixedAsset
@@ -349,11 +377,9 @@ export default function AssetTable() {
                       </div>
                     ) : (
                       <span className="font-mono text-xs text-zinc-600">
-                        {asset.category === "미국주식" || asset.category === "Crypto"
+                        {["미국주식", "해외주식", "해외ETF", "Crypto"].includes(asset.category)
                           ? "$0.00"
-                          : asset.category === "금현물" || asset.category === "ISA-ETF"
-                          ? "₩0"
-                          : "—"}
+                          : "₩0"}
                       </span>
                     )}
                   </td>

@@ -1,28 +1,41 @@
 export type AssetCategory =
-  | "미국주식"
-  | "금현물"
-  | "ISA-ETF"
-  | "주택청약"
-  | "IRP"
-  | "Crypto"
-  | "부동산";
+  | "미국주식"    // US equities → Yahoo Finance USD
+  | "한국주식"    // KRX equities → Naver Finance KRW
+  | "해외주식"    // International equities (ex-US, ex-KR) → Yahoo USD
+  | "국내ETF"     // Korean ETFs → Naver Finance KRW
+  | "해외ETF"     // Overseas ETFs → Yahoo USD
+  | "채권"        // Bonds (any exchange, auto-detected by ticker)
+  | "Crypto"      // Cryptocurrency → Binance / CoinGecko
+  | "금/원자재"   // Gold & Commodities → Yahoo (GC=F, CL=F …)
+  | "부동산"      // Real Estate → manual entry
+  | "현금/예금"   // Cash & Deposits → manual entry
+  | "연금/퇴직"   // Pension & Retirement → manual entry
+  | "보험/기타";  // Insurance & Miscellaneous → manual entry
+
+/** 시장 시세 없이 사용자가 직접 평가금액을 입력하는 카테고리 */
+export const MANUAL_CATEGORIES = new Set<AssetCategory>([
+  "부동산",
+  "현금/예금",
+  "연금/퇴직",
+  "보험/기타",
+]);
 
 export interface Asset {
   id: string;
   ticker: string;
   name: string;
-  /** 보유 수량. 주택청약·IRP는 잔액(원)을 그대로 저장. 부동산은 1 고정 */
+  /** 보유 수량. 수동 자산(MANUAL_CATEGORIES)은 1 고정, 금/원자재는 g 단위 */
   shares: number;
   category: AssetCategory;
   /** 목표 비중 (0–100, %) */
   targetRatio: number;
-  /** 단가. 시장 자산만 존재, 비시장 자산은 undefined */
+  /** 단가. 시장 자산만 존재, 수동 자산은 undefined */
   currentPrice?: number;
-  /** 평가금액 = shares × currentPrice. 비시장 자산은 shares 값이 곧 평가금액 */
+  /** 평가금액 = shares × currentPrice. 수동 자산은 manualValue 사용 */
   currentValue?: number;
-  /** 가격 통화 (USD | KRW). 미국주식은 USD, 한국 자산은 KRW */
+  /** 가격 통화 (USD | KRW) */
   currency?: string;
-  /** 부동산 전용: 사용자가 직접 입력한 KRW 평가금액. 시세 갱신 시 초기화 안 됨 */
+  /** 수동 자산 전용: 사용자가 직접 입력한 KRW 평가금액. 시세 갱신 시 초기화 안 됨 */
   manualValue?: number;
 }
 

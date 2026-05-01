@@ -6,13 +6,18 @@ import { useAssetStore } from "@/lib/store";
 import type { AssetCategory } from "@/lib/types";
 
 const CAT: Record<AssetCategory, { color: string; label: string }> = {
-  "미국주식": { color: "#38bdf8", label: "미국주식" },
-  "Crypto":   { color: "#f59e0b", label: "Crypto" },
-  "금현물":   { color: "#fcd34d", label: "금현물" },
-  "ISA-ETF":  { color: "#34d399", label: "ISA-ETF" },
-  "주택청약": { color: "#a78bfa", label: "주택청약" },
-  "IRP":      { color: "#fb923c", label: "IRP" },
-  "부동산":   { color: "#2dd4bf", label: "부동산" },
+  "미국주식":   { color: "#38bdf8", label: "미국주식" },
+  "한국주식":   { color: "#34d399", label: "한국주식" },
+  "해외주식":   { color: "#818cf8", label: "해외주식" },
+  "국내ETF":    { color: "#2dd4bf", label: "국내ETF" },
+  "해외ETF":    { color: "#60a5fa", label: "해외ETF" },
+  "채권":       { color: "#94a3b8", label: "채권" },
+  "Crypto":     { color: "#fbbf24", label: "Crypto" },
+  "금/원자재":  { color: "#fcd34d", label: "금/원자재" },
+  "부동산":     { color: "#fb7185", label: "부동산" },
+  "현금/예금":  { color: "#a78bfa", label: "현금/예금" },
+  "연금/퇴직":  { color: "#fb923c", label: "연금/퇴직" },
+  "보험/기타":  { color: "#f472b6", label: "보험/기타" },
 };
 
 type SliceData = {

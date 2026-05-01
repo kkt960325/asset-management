@@ -3,51 +3,63 @@
 import { useState } from "react";
 import type { AssetCategory } from "@/lib/types";
 
-// 카테고리별 폴백 색상
 const CAT_COLOR: Record<AssetCategory, string> = {
-  "미국주식": "#38bdf8",
-  "Crypto":   "#f59e0b",
-  "금현물":   "#fcd34d",
-  "ISA-ETF":  "#34d399",
-  "주택청약": "#a78bfa",
-  "IRP":      "#fb923c",
-  "부동산":   "#2dd4bf",
+  "미국주식":   "#38bdf8",  // sky-400
+  "한국주식":   "#34d399",  // emerald-400
+  "해외주식":   "#818cf8",  // indigo-400
+  "국내ETF":    "#2dd4bf",  // teal-400
+  "해외ETF":    "#60a5fa",  // blue-400
+  "채권":       "#94a3b8",  // slate-400
+  "Crypto":     "#fbbf24",  // amber-400
+  "금/원자재":  "#fcd34d",  // yellow-300
+  "부동산":     "#fb7185",  // rose-400
+  "현금/예금":  "#a78bfa",  // violet-400
+  "연금/퇴직":  "#fb923c",  // orange-400
+  "보험/기타":  "#f472b6",  // pink-400
 };
 
-// 카테고리별 SVG 아이콘 (폴백용)
 const CAT_ICON: Partial<Record<AssetCategory, React.ReactNode>> = {
-  "금현물": (
-    <svg viewBox="0 0 24 24" fill="currentColor" className="w-3 h-3">
-      <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5" stroke="currentColor" strokeWidth="2" fill="none" strokeLinecap="round"/>
+  "금/원자재": (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="w-3 h-3">
+      <path strokeLinecap="round" strokeLinejoin="round" d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/>
     </svg>
   ),
   "부동산": (
-    <svg viewBox="0 0 24 24" fill="currentColor" className="w-3 h-3">
-      <path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z" stroke="currentColor" strokeWidth="2" fill="none" strokeLinecap="round"/>
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="w-3 h-3">
+      <path strokeLinecap="round" strokeLinejoin="round" d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/>
+      <polyline strokeLinecap="round" strokeLinejoin="round" points="9 22 9 12 15 12 15 22"/>
     </svg>
   ),
-  "주택청약": (
+  "현금/예금": (
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="w-3 h-3">
-      <path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z" strokeLinecap="round"/>
-      <polyline points="9 22 9 12 15 12 15 22"/>
+      <rect x="2" y="5" width="20" height="14" rx="2"/>
+      <path strokeLinecap="round" d="M2 10h20"/>
     </svg>
   ),
-  "IRP": (
+  "연금/퇴직": (
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="w-3 h-3">
-      <rect x="2" y="7" width="20" height="14" rx="2"/>
-      <path d="M16 7V5a2 2 0 00-2-2h-4a2 2 0 00-2 2v2"/>
+      <path strokeLinecap="round" strokeLinejoin="round" d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+    </svg>
+  ),
+  "보험/기타": (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="w-3 h-3">
+      <circle cx="12" cy="12" r="10"/>
+      <path strokeLinecap="round" strokeLinejoin="round" d="M12 8v4l3 3"/>
+    </svg>
+  ),
+  "채권": (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="w-3 h-3">
+      <path strokeLinecap="round" strokeLinejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
     </svg>
   ),
 };
 
 function getLogoUrl(ticker: string, category: AssetCategory): string | null {
-  if (category === "미국주식") {
-    // Financial Modeling Prep — 공개 스톡 이미지 API
+  if (category === "미국주식" || category === "해외주식" || category === "해외ETF") {
     return `https://financialmodelingprep.com/image-stock/${ticker}.png`;
   }
   if (category === "Crypto") {
     const sym = ticker.replace(/-USD$/i, "").toLowerCase();
-    // CoinCap 공개 아이콘 CDN
     return `https://assets.coincap.io/assets/icons/${sym}@2x.png`;
   }
   return null;

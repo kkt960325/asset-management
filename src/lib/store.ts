@@ -1,6 +1,7 @@
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
 import type { Asset, AssetCategory, NewAssetInput, PriceData, ValueSnapshot } from "./types";
+import { MANUAL_CATEGORIES } from "./types";
 import { calcRebalance, type RebalanceSummary } from "./rebalancer";
 
 // ── 스토어 타입 ───────────────────────────────────────────────────────────────
@@ -46,7 +47,7 @@ export const useAssetStore = create<AssetStore>()(
       addAsset: (input) =>
         set((state) => {
           const id = `${input.ticker}-${Date.now()}`;
-          const isFixed = input.category === "부동산";
+          const isFixed = MANUAL_CATEGORIES.has(input.category);
           const newAsset = isFixed
             ? {
                 id,
@@ -168,7 +169,30 @@ export const useAssetStore = create<AssetStore>()(
     }),
     {
       name: "asset-management-store",
-      version: 6,
+      version: 7,
+      migrate: (persistedState: unknown, version: number) => {
+        if (version <= 6) {
+          // v6 → v7: 카테고리 이름 마이그레이션
+          const OLD_TO_NEW: Record<string, AssetCategory> = {
+            "미국주식": "미국주식",
+            "금현물":   "금/원자재",
+            "ISA-ETF":  "국내ETF",
+            "주택청약": "현금/예금",
+            "IRP":      "연금/퇴직",
+            "Crypto":   "Crypto",
+            "부동산":   "부동산",
+          };
+          const s = persistedState as { assets?: Asset[]; [key: string]: unknown };
+          return {
+            ...s,
+            assets: (s.assets ?? []).map((a: Asset) => ({
+              ...a,
+              category: OLD_TO_NEW[a.category] ?? "보험/기타",
+            })),
+          };
+        }
+        return persistedState;
+      },
     }
   )
 );

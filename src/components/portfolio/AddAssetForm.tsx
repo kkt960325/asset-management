@@ -3,9 +3,14 @@
 import { useState } from "react";
 import { useAssetStore, selectTotalTargetRatio } from "@/lib/store";
 import type { AssetCategory } from "@/lib/types";
+import { MANUAL_CATEGORIES } from "@/lib/types";
 
-const CATEGORIES: AssetCategory[] = ["미국주식", "Crypto", "금현물", "ISA-ETF", "주택청약", "IRP", "부동산"];
-const FIXED_CATEGORIES = new Set<AssetCategory>(["부동산"]);
+const CATEGORIES: AssetCategory[] = [
+  "미국주식", "한국주식", "해외주식",
+  "국내ETF", "해외ETF", "채권",
+  "Crypto", "금/원자재",
+  "부동산", "현금/예금", "연금/퇴직", "보험/기타",
+];
 
 const INITIAL = {
   ticker: "",
@@ -21,7 +26,7 @@ export default function AddAssetForm() {
   const [form, setForm] = useState(INITIAL);
   const [added, setAdded] = useState<string | null>(null);
 
-  const isFixed = FIXED_CATEGORIES.has(form.category);
+  const isFixed = MANUAL_CATEGORIES.has(form.category);
   const currentTotalPct = selectTotalTargetRatio(assets);
   const inputRatio = parseFloat(form.targetRatio) || 0;
   const projectedTotal = currentTotalPct + inputRatio;
@@ -117,7 +122,13 @@ export default function AddAssetForm() {
             </label>
             <input
               type="text"
-              placeholder={isFixed ? "강남 아파트" : "AAPL"}
+              placeholder={
+                isFixed ? "강남 아파트"
+                : form.category === "한국주식" || form.category === "국내ETF" ? "005930"
+                : form.category === "Crypto" ? "BTC"
+                : form.category === "금/원자재" ? "KRX금현물"
+                : "AAPL"
+              }
               value={form.ticker}
               onChange={(e) => set("ticker", isFixed ? e.target.value : e.target.value.toUpperCase())}
               required
@@ -132,7 +143,12 @@ export default function AddAssetForm() {
             </label>
             <input
               type="text"
-              placeholder={isFixed ? "선택 입력" : "Apple Inc."}
+              placeholder={
+                isFixed ? "선택 입력"
+                : form.category === "한국주식" || form.category === "국내ETF" ? "삼성전자"
+                : form.category === "Crypto" ? "Bitcoin"
+                : "Apple Inc."
+              }
               value={form.name}
               onChange={(e) => set("name", e.target.value)}
               className="h-9 bg-zinc-900 border border-zinc-800 rounded-lg px-3 text-sm text-zinc-100 placeholder-zinc-600 focus:outline-none focus:border-sky-500/50 focus:bg-zinc-950 transition-all"
