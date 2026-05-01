@@ -43,6 +43,8 @@ type AssetStore = {
   setTargetRatios: (ratios: Record<string, number>) => void;
   updateManualValue: (id: string, value: number) => void;
   updatePrices: (prices: Record<string, PriceData>) => void;
+  /** 시세 조회 자산의 캐시된 가격 필드를 초기화 — SYNC 강제 재계산에 사용 */
+  clearMarketPrices: () => void;
   setThreshold: (pct: number) => void;
 
   recordSnapshot: () => void;
@@ -155,6 +157,14 @@ export const useAssetStore = create<AssetStore>()(
             lookup.set(normalizeTicker(key), data); // strip .KS/.KQ/-USD + uppercase
           }
 
+          // ── E2E 트레이스 로그 ─────────────────────────────────────────────────
+          console.group("[updatePrices] E2E 매칭 진단");
+          console.log("  API 가격 맵 keys:", Object.keys(prices));
+          const marketTickers = state.assets
+            .filter((a) => !MANUAL_CATEGORIES.has(a.category))
+            .map((a) => a.ticker);
+          console.log("  Store 시장자산 tickers:", marketTickers);
+
           const updated = state.assets.map((a) => {
             // Skip categories that are always manually valued — no market price lookup
             if (MANUAL_CATEGORIES.has(a.category)) return a;
@@ -169,28 +179,48 @@ export const useAssetStore = create<AssetStore>()(
               lookup.get(normalizeTicker(a.ticker));
 
             // No price found → keep existing currentValue (preserves last-known data)
-            if (!data) return a;
+            if (!data) {
+              console.warn(
+                `  ✗ Match Fail: "${a.ticker}" ` +
+                `(tried: exact / "${a.ticker}-USD" / "${a.ticker.toUpperCase()}" / "${normalizeTicker(a.ticker)}")`
+              );
+              return a;
+            }
 
             // Force numeric type — guard against string prices from any JSON edge case
             const rawPrice = parseFloat(String(data.price));
             if (isNaN(rawPrice)) {
+              console.error(`  ✗ Parse Error: "${a.ticker}" data.price="${data.price}" → NaN`);
               // Tag as parse error; UI shows "ERR" so the issue is visible and traceable
               return { ...a, currentPrice: NaN as number, currentValue: NaN as number };
             }
 
+            const cv = (a.shares ?? 0) * rawPrice;
+            console.log(`  ✓ "${a.ticker}" → price=${rawPrice} ${data.currency}, shares=${a.shares ?? 0}, value=${cv}`);
             return {
               ...a,
               currentPrice: rawPrice,
-              currentValue: (a.shares ?? 0) * rawPrice,
+              currentValue: cv,
               currency: data.currency,
             };
           });
+
+          console.groupEnd();
 
           return {
             assets: updated,
             rebalanceAlert: calcRebalance(updated, state.thresholdPct, state.exchangeRate).needsRebalancing,
           };
         }),
+
+      clearMarketPrices: () =>
+        set((state) => ({
+          assets: state.assets.map((a) =>
+            MANUAL_CATEGORIES.has(a.category)
+              ? a
+              : { ...a, currentPrice: undefined, currentValue: undefined, currency: undefined }
+          ),
+        })),
 
       setThreshold: (pct) =>
         set((state) => ({

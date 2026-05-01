@@ -435,10 +435,19 @@ export async function GET(req: NextRequest) {
   // 예) $3,300/oz ÷ 31.1035 g/oz = $106.1/g × 1,400 KRW/USD = ₩148,526/g
   // store.updatePrices: currentValue = shares(g) × ₩/g → 단순 곱셈, ×1000 없음
   if (rawPrices[GOLD_COMEX]) {
-    rawPrices[GOLD_COMEX] = {
-      price: (rawPrices[GOLD_COMEX].price / GOLD_G_PER_OZ) * exchangeRate,
-      currency: "KRW",
-    };
+    const goldUsdPerOz = rawPrices[GOLD_COMEX].price;
+    const krwPerGram = (goldUsdPerOz / GOLD_G_PER_OZ) * exchangeRate;
+    console.log(
+      `[gold] GC=F raw = ${goldUsdPerOz} USD/oz | exchangeRate = ${exchangeRate} | KRW/g = ${krwPerGram.toFixed(0)}`
+    );
+    // Fallback if calculation yields invalid value (e.g., null price from Yahoo)
+    if (!isFinite(krwPerGram) || krwPerGram <= 0) {
+      const fallback = (3_300 / GOLD_G_PER_OZ) * USDKRW_FALLBACK;
+      console.error(`[gold] KRW/g 이상값 (${krwPerGram}) — 폴백 ${fallback.toFixed(0)} KRW/g 사용`);
+      rawPrices[GOLD_COMEX] = { price: fallback, currency: "KRW" };
+    } else {
+      rawPrices[GOLD_COMEX] = { price: krwPerGram, currency: "KRW" };
+    }
   }
 
   // 요청된 티커만 응답 (USDKRW=X 는 exchangeRate 필드로 별도 반환)
@@ -465,5 +474,7 @@ export async function GET(req: NextRequest) {
   if (failed.length > 0) {
     console.warn(`[prices] 가격 조회 실패 티커: [${failed.join(", ")}]`);
   }
+  // E2E 트레이스: 최종 응답 JSON 전체 출력 (서버 로그에서 확인 가능)
+  console.log("[prices] 최종 응답 JSON:", JSON.stringify({ prices, exchangeRate, failed, mock: usingMock || undefined }));
   return NextResponse.json<PricesApiResponse>({ prices, exchangeRate, failed, mock: usingMock || undefined });
 }

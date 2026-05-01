@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useCallback } from "react";
 import { useAssetPrices, getLastDebugInfo } from "@/lib/api";
 import { useAssetStore } from "@/lib/store";
 import { MANUAL_CATEGORIES } from "@/lib/types";
@@ -12,7 +12,14 @@ import AddAssetForm from "@/components/portfolio/AddAssetForm";
 import SyncButton from "@/components/portfolio/SyncButton";
 
 export default function PortfolioPage() {
-  const { refresh, loading, error, lastUpdated, usingMock, assets } = useAssetPrices();
+  const { refresh, loading, error, lastUpdated, usingMock, assets, clearMarketPrices } = useAssetPrices();
+
+  // Hard sync: wipe stale cached prices first, then fetch fresh data.
+  // Solves localStorage구형 데이터(old currentPrice/currentValue) blocking new values.
+  const hardSync = useCallback(() => {
+    clearMarketPrices();
+    refresh();
+  }, [clearMarketPrices, refresh]);
 
   // Keep a stable ref to refresh so the force-sync effect doesn't re-trigger
   // when the refresh callback identity changes (which happens when assets update).
@@ -121,7 +128,7 @@ export default function PortfolioPage() {
   return (
     <div className="space-y-6">
       <PortfolioSummary
-        onRefresh={refresh}
+        onRefresh={hardSync}
         loading={loading}
         error={error}
         lastUpdated={lastUpdated}
@@ -133,8 +140,8 @@ export default function PortfolioPage() {
       <AssetTable loading={loading} />
       <AddAssetForm />
 
-      {/* Fixed sync button — always visible, top-right corner */}
-      <SyncButton onSync={refresh} loading={loading} usingMock={usingMock} />
+      {/* Fixed sync button — hardSync clears stale localStorage prices before re-fetching */}
+      <SyncButton onSync={hardSync} loading={loading} usingMock={usingMock} />
     </div>
   );
 }

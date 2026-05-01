@@ -60,6 +60,7 @@ export async function fetchAssetPrices(marketAssets: AssetForPrice[]): Promise<{
   failed: string[];
   mock?: boolean;
 }> {
+  // internal ticker → Yahoo symbol (1:1, multiple internals CAN share the same Yahoo symbol)
   const internalToYahoo: Record<string, string> = Object.fromEntries(
     marketAssets.map(({ ticker, category }) => {
       const mapped = YAHOO_TICKER_MAP[ticker];
@@ -74,33 +75,50 @@ export async function fetchAssetPrices(marketAssets: AssetForPrice[]): Promise<{
       return [ticker, ticker];
     })
   );
-  const yahooToInternal: Record<string, string> = Object.fromEntries(
-    Object.entries(internalToYahoo).map(([internal, yahoo]) => [yahoo, internal])
-  );
 
-  const yahooTickers = Object.values(internalToYahoo);
+  // ── 1:N 역매핑 ──────────────────────────────────────────────────────────────
+  // 여러 내부 티커가 동일 Yahoo 심볼을 가리킬 수 있음.
+  // (예: "KRX금현물"과 "금 99.99_1KG" 둘 다 "GC=F"로 매핑)
+  // Object.fromEntries 방식(1:1)은 마지막 항목이 이전 항목을 덮어써서
+  // 한 자산은 가격을 받지 못하는 버그가 생김.
+  // → 동일 Yahoo 심볼에 매핑된 모든 내부 티커 목록을 유지한다.
+  const yahooToInternals: Record<string, string[]> = {};
+  for (const [internal, yahoo] of Object.entries(internalToYahoo)) {
+    (yahooToInternals[yahoo] ??= []).push(internal);
+  }
+
+  // 중복 Yahoo 심볼 제거 후 API 요청
+  const yahooTickers = Array.from(new Set(Object.values(internalToYahoo)));
   const params = new URLSearchParams({ tickers: yahooTickers.join(",") });
+
+  console.log("[api] 요청 Yahoo tickers:", yahooTickers);
+  console.log("[api] internalToYahoo 매핑:", internalToYahoo);
 
   const res = await fetch(`/api/prices?${params}`);
   if (!res.ok) throw new Error(`가격 조회 실패: HTTP ${res.status}`);
 
   const { prices: rawPrices, exchangeRate, failed = [], mock }: PricesApiResponse = await res.json();
   if (mock) console.warn("[api] ⚠ Yahoo Finance 차단 — Mock 데이터 사용 중");
+  console.log("[api] 서버 응답 keys:", Object.keys(rawPrices), "| failed:", failed);
 
-  // Yahoo 심볼 → 내부 ticker로 역매핑
-  const priceMap: Record<string, PriceData> = Object.fromEntries(
-    Object.entries(rawPrices).map(([yahooSymbol, data]) => [
-      yahooToInternal[yahooSymbol] ?? yahooSymbol,
-      data,
-    ])
-  );
+  // Yahoo 심볼 → 모든 내부 ticker에 가격 복제 (1:N 매핑)
+  // 같은 GC=F 가격을 "KRX금현물"과 "금 99.99_1KG" 양쪽에 동시에 설정함
+  const priceMap: Record<string, PriceData> = {};
+  for (const [yahooSymbol, data] of Object.entries(rawPrices)) {
+    const internals = yahooToInternals[yahooSymbol] ?? [yahooSymbol];
+    for (const internal of internals) {
+      priceMap[internal] = data;
+      console.log(`[api] 역매핑: "${yahooSymbol}" → "${internal}" = ${data.price} ${data.currency}`);
+    }
+  }
 
-  // 안전망: route.ts에서 이미 -USD를 제거하지만, 혹시 남아있는 키도 제거
+  // 안전망: -USD 접미사가 남아있으면 제거 (BTC-USD → BTC)
   const sanitized: Record<string, PriceData> = {};
   for (const [k, v] of Object.entries(priceMap)) {
     sanitized[k.endsWith("-USD") ? k.replace(/-USD$/, "") : k] = v;
   }
 
+  console.log("[api] 최종 priceMap keys:", Object.keys(sanitized));
   return { priceMap: sanitized, exchangeRate, failed, mock };
 }
 
@@ -109,7 +127,7 @@ export async function fetchAssetPrices(marketAssets: AssetForPrice[]): Promise<{
  * `refresh()`를 호출하면 현재가 + 환율을 가져와 store를 업데이트한다.
  */
 export function useAssetPrices() {
-  const { assets, updatePrices, setExchangeRate, recordSnapshot, setLastPriceUpdate } =
+  const { assets, updatePrices, setExchangeRate, recordSnapshot, setLastPriceUpdate, clearMarketPrices } =
     useAssetStore();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -148,5 +166,5 @@ export function useAssetPrices() {
     }
   }, [assets, updatePrices, setExchangeRate, recordSnapshot, setLastPriceUpdate]);
 
-  return { refresh, loading, error, lastUpdated, usingMock, assets };
+  return { refresh, loading, error, lastUpdated, usingMock, assets, clearMarketPrices };
 }
