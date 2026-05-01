@@ -72,29 +72,20 @@ export default function Home() {
         </div>
 
         {/* Main headline */}
-        <div className="flex flex-col">
-          <h1
-            className="font-display font-black uppercase leading-[0.88] animate-data-flicker"
-            style={{
-              fontSize: "clamp(3.4rem, 10vw, 9.5rem)",
-              color: "#00d4ff",
-              letterSpacing: "-0.02em",
-              textShadow: "0 0 40px rgba(0,212,255,0.35), 0 0 80px rgba(0,212,255,0.12)",
-            }}
-          >
-            SEUNG
-          </h1>
-          <h1
-            className="font-display font-black uppercase leading-[0.88]"
-            style={{
-              fontSize: "clamp(3.4rem, 10vw, 9.5rem)",
-              color: "#b8e0f0",
-              letterSpacing: "-0.02em",
-            }}
-          >
-            HANIST
-          </h1>
-        </div>
+        <h1
+          className="font-display font-black uppercase leading-[0.88] animate-data-flicker"
+          style={{
+            fontSize: "clamp(3.4rem, 10vw, 9.5rem)",
+            letterSpacing: "-0.02em",
+          }}
+        >
+          <span style={{ color: "#00d4ff", textShadow: "0 0 40px rgba(0,212,255,0.35), 0 0 80px rgba(0,212,255,0.12)" }}>
+            SEUNGHAN
+          </span>
+          <span style={{ color: "#ff6600", textShadow: "0 0 40px rgba(255,102,0,0.35), 0 0 80px rgba(255,102,0,0.12)" }}>
+            IST
+          </span>
+        </h1>
 
         {/* Separator */}
         <div className="flex items-center gap-4">
