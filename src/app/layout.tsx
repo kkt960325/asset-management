@@ -36,15 +36,15 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <nav
           className="relative z-50 sticky top-0"
           style={{
-            background: "rgba(0,5,8,0.94)",
-            backdropFilter: "blur(12px)",
-            borderBottom: "1px solid rgba(0,212,255,0.12)",
-            boxShadow: "0 1px 0 rgba(0,212,255,0.06), 0 4px 24px rgba(0,0,8,0.8)",
+            background: "rgba(10,22,40,0.95)",
+            backdropFilter: "blur(14px)",
+            borderBottom: "1px solid rgba(0,212,255,0.18)",
+            boxShadow: "0 1px 0 rgba(0,212,255,0.08), 0 4px 24px rgba(0,4,16,0.6)",
           }}
         >
           {/* Top scan line */}
           <div className="absolute top-0 inset-x-0 h-px"
-            style={{ background: "linear-gradient(90deg, transparent, rgba(0,212,255,0.6), transparent)" }} />
+            style={{ background: "linear-gradient(90deg, transparent, rgba(0,212,255,0.7), transparent)" }} />
 
           <div className="max-w-7xl mx-auto px-6 h-14 flex items-center justify-between">
             {/* Logo */}
@@ -57,7 +57,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
               </div>
               <div className="flex flex-col leading-none gap-0.5">
                 <span className="font-display text-[9px] tracking-[0.45em] uppercase"
-                  style={{ color: "rgba(0,212,255,0.4)" }}>
+                  style={{ color: "rgba(0,212,255,0.55)" }}>
                   STATUS: ONLINE
                 </span>
                 <span
@@ -79,14 +79,14 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
                   key={href}
                   href={href}
                   className="group relative px-4 py-2 font-display text-[11px] tracking-[0.25em] uppercase transition-colors duration-200"
-                  style={{ color: "rgba(0,212,255,0.35)" }}
+                  style={{ color: "rgba(0,212,255,0.5)" }}
                 >
                   <span className="relative z-10 group-hover:text-[#00d4ff] transition-colors duration-200">
                     [ {label} ]
                   </span>
                   <div
                     className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-200"
-                    style={{ background: "rgba(0,212,255,0.04)", border: "1px solid rgba(0,212,255,0.1)" }}
+                    style={{ background: "rgba(0,212,255,0.06)", border: "1px solid rgba(0,212,255,0.15)" }}
                   />
                 </Link>
               ))}
@@ -101,11 +101,11 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         {/* Footer */}
         <footer
           className="relative z-10 py-5 mt-8"
-          style={{ borderTop: "1px solid rgba(0,212,255,0.07)" }}
+          style={{ borderTop: "1px solid rgba(0,212,255,0.1)" }}
         >
           <p
             className="text-center font-mono text-[9px] tracking-[0.35em] uppercase"
-            style={{ color: "rgba(0,212,255,0.18)" }}
+            style={{ color: "rgba(0,212,255,0.28)" }}
           >
             // SEUNGHANIST · ALL DATA STORED LOCALLY · NO SERVER TRANSMISSION · SECURE //
           </p>

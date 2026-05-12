@@ -60,8 +60,8 @@ export default function SyncButton({ onSync, loading, usingMock }: SyncButtonPro
           border: "1px solid rgba(0,212,255,0.35)",
           borderRadius: "3px",
           background: loading
-            ? "rgba(0,212,255,0.04)"
-            : "rgba(0,212,255,0.08)",
+            ? "rgba(14,28,50,0.85)"
+            : "rgba(14,28,50,0.9)",
           backdropFilter: "blur(12px)",
           cursor: loading ? "not-allowed" : "pointer",
           fontFamily: "var(--font-mono, monospace)",

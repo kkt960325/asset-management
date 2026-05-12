@@ -22,9 +22,9 @@ const INITIAL = {
 };
 
 const inputBase: React.CSSProperties = {
-  background: "rgba(0,8,18,0.9)",
-  border: "1px solid rgba(0,212,255,0.14)",
-  color: "#b8e0f0",
+  background: "rgba(14,28,50,0.9)",
+  border: "1px solid rgba(0,212,255,0.2)",
+  color: "#d8eef8",
   outline: "none",
   fontFamily: "var(--font-mono)",
 };
@@ -76,27 +76,27 @@ export default function AddAssetForm() {
     <div
       className="relative overflow-hidden animate-fade-in-up"
       style={{
-        background: "linear-gradient(135deg, rgba(0,12,24,0.96) 0%, rgba(0,7,16,0.99) 100%)",
-        border: "1px solid rgba(0,212,255,0.12)",
-        boxShadow: "0 0 0 1px rgba(0,212,255,0.04), inset 0 0 80px rgba(0,60,120,0.04), 0 8px 40px rgba(0,0,8,0.9)",
+        background: "linear-gradient(135deg, rgba(14,29,53,0.97) 0%, rgba(10,22,40,0.99) 100%)",
+        border: "1px solid rgba(0,212,255,0.18)",
+        boxShadow: "0 0 0 1px rgba(0,212,255,0.06), inset 0 0 80px rgba(0,80,160,0.06), 0 8px 40px rgba(0,4,16,0.7)",
       }}
     >
       {/* Top glow line */}
-      <div className="absolute top-0 inset-x-0 h-px" style={{ background: "linear-gradient(90deg, transparent, rgba(0,212,255,0.5), transparent)" }} />
+      <div className="absolute top-0 inset-x-0 h-px" style={{ background: "linear-gradient(90deg, transparent, rgba(0,212,255,0.6), transparent)" }} />
       {/* Corners */}
-      <div className="absolute top-0 left-0 w-3 h-3 z-10" style={{ borderTop: "1px solid rgba(0,212,255,0.5)", borderLeft: "1px solid rgba(0,212,255,0.5)" }} />
-      <div className="absolute top-0 right-0 w-3 h-3 z-10" style={{ borderTop: "1px solid rgba(0,212,255,0.5)", borderRight: "1px solid rgba(0,212,255,0.5)" }} />
-      <div className="absolute bottom-0 left-0 w-3 h-3 z-10" style={{ borderBottom: "1px solid rgba(0,212,255,0.5)", borderLeft: "1px solid rgba(0,212,255,0.5)" }} />
-      <div className="absolute bottom-0 right-0 w-3 h-3 z-10" style={{ borderBottom: "1px solid rgba(0,212,255,0.5)", borderRight: "1px solid rgba(0,212,255,0.5)" }} />
+      <div className="absolute top-0 left-0 w-3 h-3 z-10" style={{ borderTop: "1px solid rgba(0,212,255,0.6)", borderLeft: "1px solid rgba(0,212,255,0.6)" }} />
+      <div className="absolute top-0 right-0 w-3 h-3 z-10" style={{ borderTop: "1px solid rgba(0,212,255,0.6)", borderRight: "1px solid rgba(0,212,255,0.6)" }} />
+      <div className="absolute bottom-0 left-0 w-3 h-3 z-10" style={{ borderBottom: "1px solid rgba(0,212,255,0.6)", borderLeft: "1px solid rgba(0,212,255,0.6)" }} />
+      <div className="absolute bottom-0 right-0 w-3 h-3 z-10" style={{ borderBottom: "1px solid rgba(0,212,255,0.6)", borderRight: "1px solid rgba(0,212,255,0.6)" }} />
 
       {/* Header */}
       <div
         className="px-5 py-3.5 flex items-center justify-between"
-        style={{ borderBottom: "1px solid rgba(0,212,255,0.1)" }}
+        style={{ borderBottom: "1px solid rgba(0,212,255,0.15)" }}
       >
         <div className="flex items-center gap-2">
           <span className="w-1.5 h-1.5 rounded-full" style={{ background: "#00d4ff", boxShadow: "0 0 6px #00d4ff" }} />
-          <span className="font-display text-[10px] tracking-[0.35em] uppercase" style={{ color: "rgba(0,212,255,0.45)" }}>
+          <span className="font-display text-[10px] tracking-[0.35em] uppercase" style={{ color: "rgba(0,212,255,0.6)" }}>
             ADD ASSET
           </span>
           {isFixed && (
@@ -110,7 +110,7 @@ export default function AddAssetForm() {
         </div>
 
         <div className="flex items-center gap-2">
-          <span className="font-display text-[9px] tracking-[0.2em] uppercase" style={{ color: "rgba(0,212,255,0.25)" }}>
+          <span className="font-display text-[9px] tracking-[0.2em] uppercase" style={{ color: "rgba(0,212,255,0.4)" }}>
             ALLOCATED
           </span>
           <span
@@ -138,7 +138,7 @@ export default function AddAssetForm() {
 
           {/* Ticker / asset name */}
           <div className="flex flex-col gap-1.5">
-            <label className="font-display text-[9px] tracking-[0.35em] uppercase" style={{ color: "rgba(0,212,255,0.35)" }}>
+            <label className="font-display text-[9px] tracking-[0.35em] uppercase" style={{ color: "rgba(0,212,255,0.5)" }}>
               {isFixed ? "ASSET ID" : "TICKER"} <span style={{ color: "#ff2244" }}>*</span>
             </label>
             <input
@@ -159,14 +159,14 @@ export default function AddAssetForm() {
                 ...inputBase,
                 caretColor: "#00d4ff",
               }}
-              onFocus={(e) => { e.target.style.border = "1px solid rgba(0,212,255,0.5)"; e.target.style.boxShadow = "0 0 12px rgba(0,212,255,0.08)"; }}
-              onBlur={(e) => { e.target.style.border = "1px solid rgba(0,212,255,0.14)"; e.target.style.boxShadow = "none"; }}
+              onFocus={(e) => { e.target.style.border = "1px solid rgba(0,212,255,0.55)"; e.target.style.boxShadow = "0 0 12px rgba(0,212,255,0.12)"; }}
+              onBlur={(e) => { e.target.style.border = "1px solid rgba(0,212,255,0.2)"; e.target.style.boxShadow = "none"; }}
             />
           </div>
 
           {/* Name / memo */}
           <div className="flex flex-col gap-1.5">
-            <label className="font-display text-[9px] tracking-[0.35em] uppercase" style={{ color: "rgba(0,212,255,0.35)" }}>
+            <label className="font-display text-[9px] tracking-[0.35em] uppercase" style={{ color: "rgba(0,212,255,0.5)" }}>
               {isFixed ? "MEMO" : "NAME"}
             </label>
             <input
@@ -183,14 +183,14 @@ export default function AddAssetForm() {
               onChange={(e) => set("name", e.target.value)}
               className="h-9 px-3 text-sm transition-all"
               style={{ ...inputBase, fontFamily: "var(--font-sans)" }}
-              onFocus={(e) => { e.target.style.border = "1px solid rgba(0,212,255,0.5)"; e.target.style.boxShadow = "0 0 12px rgba(0,212,255,0.08)"; }}
-              onBlur={(e) => { e.target.style.border = "1px solid rgba(0,212,255,0.14)"; e.target.style.boxShadow = "none"; }}
+              onFocus={(e) => { e.target.style.border = "1px solid rgba(0,212,255,0.55)"; e.target.style.boxShadow = "0 0 12px rgba(0,212,255,0.12)"; }}
+              onBlur={(e) => { e.target.style.border = "1px solid rgba(0,212,255,0.2)"; e.target.style.boxShadow = "none"; }}
             />
           </div>
 
           {/* Category */}
           <div className="flex flex-col gap-1.5">
-            <label className="font-display text-[9px] tracking-[0.35em] uppercase" style={{ color: "rgba(0,212,255,0.35)" }}>
+            <label className="font-display text-[9px] tracking-[0.35em] uppercase" style={{ color: "rgba(0,212,255,0.5)" }}>
               CATEGORY
             </label>
             <select
@@ -202,14 +202,14 @@ export default function AddAssetForm() {
               onBlur={(e) => { e.target.style.border = "1px solid rgba(0,212,255,0.14)"; }}
             >
               {CATEGORIES.map((c) => (
-                <option key={c} value={c} style={{ background: "#000f20" }}>{c}</option>
+                <option key={c} value={c} style={{ background: "#101f38" }}>{c}</option>
               ))}
             </select>
           </div>
 
           {/* Shares / value */}
           <div className="flex flex-col gap-1.5">
-            <label className="font-display text-[9px] tracking-[0.35em] uppercase" style={{ color: "rgba(0,212,255,0.35)" }}>
+            <label className="font-display text-[9px] tracking-[0.35em] uppercase" style={{ color: "rgba(0,212,255,0.5)" }}>
               {isFixed ? "VALUE (₩)" : "QUANTITY"} <span style={{ color: "#ff2244" }}>*</span>
             </label>
             {isFixed ? (
@@ -241,7 +241,7 @@ export default function AddAssetForm() {
 
           {/* Target ratio + submit */}
           <div className="flex flex-col gap-1.5">
-            <label className="font-display text-[9px] tracking-[0.35em] uppercase" style={{ color: "rgba(0,212,255,0.35)" }}>
+            <label className="font-display text-[9px] tracking-[0.35em] uppercase" style={{ color: "rgba(0,212,255,0.5)" }}>
               TARGET (%)
             </label>
             <div className="flex gap-2">

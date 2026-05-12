@@ -28,7 +28,7 @@ export function MouseGlow() {
           y,
           translateX: "-55%",
           translateY: "-55%",
-          background: "radial-gradient(circle, rgba(0,212,255,0.055) 0%, rgba(0,120,200,0.02) 40%, transparent 70%)",
+          background: "radial-gradient(circle, rgba(0,212,255,0.07) 0%, rgba(0,140,220,0.03) 40%, transparent 70%)",
         }}
         className="absolute w-[800px] h-[800px] rounded-full blur-[110px]"
       />
@@ -39,7 +39,7 @@ export function MouseGlow() {
           y,
           translateX: "-25%",
           translateY: "-75%",
-          background: "radial-gradient(circle, rgba(0,80,200,0.04) 0%, transparent 65%)",
+          background: "radial-gradient(circle, rgba(0,100,220,0.05) 0%, transparent 65%)",
         }}
         className="absolute w-[500px] h-[500px] rounded-full blur-[90px]"
       />

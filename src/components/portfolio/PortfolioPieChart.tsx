@@ -38,9 +38,9 @@ function PieTooltip({ active, payload }: { active?: boolean; payload?: Array<{ p
     <div
       className="p-3 text-xs min-w-[140px]"
       style={{
-        background: "rgba(0,8,18,0.97)",
-        border: `1px solid rgba(0,212,255,0.2)`,
-        boxShadow: "0 0 20px rgba(0,0,8,0.8)",
+        background: "rgba(14,28,50,0.97)",
+        border: "1px solid rgba(0,212,255,0.22)",
+        boxShadow: "0 0 20px rgba(0,4,16,0.6)",
       }}
     >
       <div className="flex items-center gap-1.5 mb-2">
@@ -85,33 +85,33 @@ export default function PortfolioPieChart() {
     <div
       className="relative overflow-hidden animate-fade-in-up"
       style={{
-        background: "linear-gradient(135deg, rgba(0,12,24,0.96) 0%, rgba(0,7,16,0.99) 100%)",
-        border: "1px solid rgba(0,212,255,0.12)",
-        boxShadow: "0 0 0 1px rgba(0,212,255,0.04), inset 0 0 80px rgba(0,60,120,0.04), 0 8px 40px rgba(0,0,8,0.9)",
+        background: "linear-gradient(135deg, rgba(14,29,53,0.97) 0%, rgba(10,22,40,0.99) 100%)",
+        border: "1px solid rgba(0,212,255,0.18)",
+        boxShadow: "0 0 0 1px rgba(0,212,255,0.06), inset 0 0 80px rgba(0,80,160,0.06), 0 8px 40px rgba(0,4,16,0.7)",
       }}
     >
       {/* Top glow line */}
-      <div className="absolute top-0 inset-x-0 h-px" style={{ background: "linear-gradient(90deg, transparent, rgba(0,212,255,0.5), transparent)" }} />
+      <div className="absolute top-0 inset-x-0 h-px" style={{ background: "linear-gradient(90deg, transparent, rgba(0,212,255,0.6), transparent)" }} />
       {/* Corners */}
-      <div className="absolute top-0 left-0 w-3 h-3 z-10" style={{ borderTop: "1px solid rgba(0,212,255,0.5)", borderLeft: "1px solid rgba(0,212,255,0.5)" }} />
-      <div className="absolute top-0 right-0 w-3 h-3 z-10" style={{ borderTop: "1px solid rgba(0,212,255,0.5)", borderRight: "1px solid rgba(0,212,255,0.5)" }} />
-      <div className="absolute bottom-0 left-0 w-3 h-3 z-10" style={{ borderBottom: "1px solid rgba(0,212,255,0.5)", borderLeft: "1px solid rgba(0,212,255,0.5)" }} />
-      <div className="absolute bottom-0 right-0 w-3 h-3 z-10" style={{ borderBottom: "1px solid rgba(0,212,255,0.5)", borderRight: "1px solid rgba(0,212,255,0.5)" }} />
+      <div className="absolute top-0 left-0 w-3 h-3 z-10" style={{ borderTop: "1px solid rgba(0,212,255,0.6)", borderLeft: "1px solid rgba(0,212,255,0.6)" }} />
+      <div className="absolute top-0 right-0 w-3 h-3 z-10" style={{ borderTop: "1px solid rgba(0,212,255,0.6)", borderRight: "1px solid rgba(0,212,255,0.6)" }} />
+      <div className="absolute bottom-0 left-0 w-3 h-3 z-10" style={{ borderBottom: "1px solid rgba(0,212,255,0.6)", borderLeft: "1px solid rgba(0,212,255,0.6)" }} />
+      <div className="absolute bottom-0 right-0 w-3 h-3 z-10" style={{ borderBottom: "1px solid rgba(0,212,255,0.6)", borderRight: "1px solid rgba(0,212,255,0.6)" }} />
 
       {/* Header */}
       <div
         className="px-5 py-3.5 flex items-center gap-2"
-        style={{ borderBottom: "1px solid rgba(0,212,255,0.1)" }}
+        style={{ borderBottom: "1px solid rgba(0,212,255,0.15)" }}
       >
         <span
           className="w-1.5 h-1.5 rounded-full"
           style={{ background: "#ffaa00", boxShadow: "0 0 6px rgba(255,170,0,0.8)" }}
         />
-        <span className="font-display text-[10px] tracking-[0.35em] uppercase" style={{ color: "rgba(0,212,255,0.45)" }}>
+        <span className="font-display text-[10px] tracking-[0.35em] uppercase" style={{ color: "rgba(0,212,255,0.6)" }}>
           ASSET ALLOCATION
         </span>
         {hasData && (
-          <span className="ml-auto font-mono text-[9px]" style={{ color: "rgba(0,212,255,0.25)" }}>
+          <span className="ml-auto font-mono text-[9px]" style={{ color: "rgba(0,212,255,0.4)" }}>
             {chartData.length} SECTORS
           </span>
         )}
@@ -133,10 +133,10 @@ export default function PortfolioPieChart() {
             </svg>
           </div>
           <div>
-            <p className="font-display text-xs tracking-[0.2em] uppercase" style={{ color: "rgba(0,212,255,0.4)" }}>
+            <p className="font-display text-xs tracking-[0.2em] uppercase" style={{ color: "rgba(0,212,255,0.55)" }}>
               NO DATA
             </p>
-            <p className="font-mono text-[10px] mt-1" style={{ color: "rgba(0,212,255,0.2)" }}>
+            <p className="font-mono text-[10px] mt-1" style={{ color: "rgba(0,212,255,0.35)" }}>
               REFRESH SYSTEMS TO FETCH PRICES
             </p>
           </div>
@@ -226,10 +226,10 @@ export default function PortfolioPieChart() {
                     transform: activeIdx === i ? "scale(1.5)" : "scale(1)",
                   }}
                 />
-                <span className="text-[11px] flex-1 truncate" style={{ color: "rgba(184,224,240,0.6)" }}>
+                <span className="text-[11px] flex-1 truncate" style={{ color: "rgba(216,238,248,0.75)" }}>
                   {entry.label}
                 </span>
-                <span className="font-mono text-[11px]" style={{ color: activeIdx === i ? entry.color : "rgba(184,224,240,0.7)" }}>
+                <span className="font-mono text-[11px]" style={{ color: activeIdx === i ? entry.color : "rgba(216,238,248,0.8)" }}>
                   {fmtKrw(entry.value)}
                 </span>
                 <span className="font-mono text-[10px] w-11 text-right font-bold"
@@ -243,7 +243,7 @@ export default function PortfolioPieChart() {
               className="mt-1 pt-2 flex items-center justify-between px-2.5"
               style={{ borderTop: "1px solid rgba(0,212,255,0.08)" }}
             >
-              <span className="font-display text-[9px] tracking-[0.35em] uppercase" style={{ color: "rgba(0,212,255,0.3)" }}>
+              <span className="font-display text-[9px] tracking-[0.35em] uppercase" style={{ color: "rgba(0,212,255,0.45)" }}>
                 TOTAL
               </span>
               <span

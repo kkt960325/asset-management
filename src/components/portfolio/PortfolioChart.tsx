@@ -36,19 +36,19 @@ function CustomTooltip({ active, payload, label }: CustomTooltipProps) {
     <div
       className="p-3 text-xs min-w-[160px]"
       style={{
-        background: "rgba(0,8,18,0.97)",
-        border: "1px solid rgba(0,212,255,0.18)",
-        boxShadow: "0 0 20px rgba(0,0,8,0.8)",
+        background: "rgba(14,28,50,0.97)",
+        border: "1px solid rgba(0,212,255,0.22)",
+        boxShadow: "0 0 20px rgba(0,4,16,0.6)",
       }}
     >
-      <p className="font-display text-[9px] tracking-[0.3em] uppercase mb-2.5" style={{ color: "rgba(0,212,255,0.4)" }}>
+      <p className="font-display text-[9px] tracking-[0.3em] uppercase mb-2.5" style={{ color: "rgba(0,212,255,0.55)" }}>
         {label}
       </p>
       {payload.map((entry: TooltipEntry) => (
         <div key={entry.dataKey} className="flex items-center justify-between gap-4 mb-1">
           <div className="flex items-center gap-1.5">
             <span className="w-2 h-2 rounded-full flex-shrink-0" style={{ background: entry.color, boxShadow: `0 0 4px ${entry.color}` }} />
-            <span className="font-mono text-[10px]" style={{ color: "rgba(184,224,240,0.6)" }}>{entry.dataKey}</span>
+            <span className="font-mono text-[10px]" style={{ color: "rgba(216,238,248,0.7)" }}>{entry.dataKey}</span>
           </div>
           <span className="font-mono font-semibold" style={{ color: entry.color }}>
             {entry.dataKey === "KRW"
@@ -70,7 +70,7 @@ function CustomLegend() {
       ].map(({ color, label }) => (
         <div key={label} className="flex items-center gap-2">
           <span className="w-5 h-px inline-block" style={{ background: color, boxShadow: `0 0 4px ${color}` }} />
-          <span className="font-display text-[10px] tracking-[0.2em] uppercase" style={{ color: "rgba(184,224,240,0.5)" }}>
+          <span className="font-display text-[10px] tracking-[0.2em] uppercase" style={{ color: "rgba(216,238,248,0.6)" }}>
             {label}
           </span>
         </div>
@@ -95,32 +95,32 @@ export default function PortfolioChart() {
     <div
       className="relative overflow-hidden animate-fade-in-up"
       style={{
-        background: "linear-gradient(135deg, rgba(0,12,24,0.96) 0%, rgba(0,7,16,0.99) 100%)",
-        border: "1px solid rgba(0,212,255,0.12)",
-        boxShadow: "0 0 0 1px rgba(0,212,255,0.04), inset 0 0 80px rgba(0,60,120,0.04), 0 8px 40px rgba(0,0,8,0.9)",
+        background: "linear-gradient(135deg, rgba(14,29,53,0.97) 0%, rgba(10,22,40,0.99) 100%)",
+        border: "1px solid rgba(0,212,255,0.18)",
+        boxShadow: "0 0 0 1px rgba(0,212,255,0.06), inset 0 0 80px rgba(0,80,160,0.06), 0 8px 40px rgba(0,4,16,0.7)",
       }}
     >
       {/* Top glow */}
-      <div className="absolute top-0 inset-x-0 h-px" style={{ background: "linear-gradient(90deg, transparent, rgba(0,212,255,0.5), transparent)" }} />
+      <div className="absolute top-0 inset-x-0 h-px" style={{ background: "linear-gradient(90deg, transparent, rgba(0,212,255,0.6), transparent)" }} />
       {/* Corners */}
-      <div className="absolute top-0 left-0 w-3 h-3 z-10" style={{ borderTop: "1px solid rgba(0,212,255,0.5)", borderLeft: "1px solid rgba(0,212,255,0.5)" }} />
-      <div className="absolute top-0 right-0 w-3 h-3 z-10" style={{ borderTop: "1px solid rgba(0,212,255,0.5)", borderRight: "1px solid rgba(0,212,255,0.5)" }} />
-      <div className="absolute bottom-0 left-0 w-3 h-3 z-10" style={{ borderBottom: "1px solid rgba(0,212,255,0.5)", borderLeft: "1px solid rgba(0,212,255,0.5)" }} />
-      <div className="absolute bottom-0 right-0 w-3 h-3 z-10" style={{ borderBottom: "1px solid rgba(0,212,255,0.5)", borderRight: "1px solid rgba(0,212,255,0.5)" }} />
+      <div className="absolute top-0 left-0 w-3 h-3 z-10" style={{ borderTop: "1px solid rgba(0,212,255,0.6)", borderLeft: "1px solid rgba(0,212,255,0.6)" }} />
+      <div className="absolute top-0 right-0 w-3 h-3 z-10" style={{ borderTop: "1px solid rgba(0,212,255,0.6)", borderRight: "1px solid rgba(0,212,255,0.6)" }} />
+      <div className="absolute bottom-0 left-0 w-3 h-3 z-10" style={{ borderBottom: "1px solid rgba(0,212,255,0.6)", borderLeft: "1px solid rgba(0,212,255,0.6)" }} />
+      <div className="absolute bottom-0 right-0 w-3 h-3 z-10" style={{ borderBottom: "1px solid rgba(0,212,255,0.6)", borderRight: "1px solid rgba(0,212,255,0.6)" }} />
 
       {/* Header */}
       <div
         className="px-5 py-3.5 flex items-center justify-between"
-        style={{ borderBottom: "1px solid rgba(0,212,255,0.1)" }}
+        style={{ borderBottom: "1px solid rgba(0,212,255,0.15)" }}
       >
         <div className="flex items-center gap-2">
           <span className="w-1.5 h-1.5 rounded-full"
             style={{ background: "#aa88ff", boxShadow: "0 0 6px rgba(170,136,255,0.8)" }} />
-          <span className="font-display text-[10px] tracking-[0.35em] uppercase" style={{ color: "rgba(0,212,255,0.45)" }}>
+          <span className="font-display text-[10px] tracking-[0.35em] uppercase" style={{ color: "rgba(0,212,255,0.6)" }}>
             PORTFOLIO HISTORY
           </span>
           {valueHistory.length > 0 && (
-            <span className="font-mono text-[9px] ml-1" style={{ color: "rgba(0,212,255,0.2)" }}>
+            <span className="font-mono text-[9px] ml-1" style={{ color: "rgba(0,212,255,0.35)" }}>
               {valueHistory.length} POINTS
             </span>
           )}
@@ -129,7 +129,7 @@ export default function PortfolioChart() {
           <button
             onClick={clearHistory}
             className="font-display text-[9px] tracking-[0.25em] uppercase transition-colors"
-            style={{ color: "rgba(0,212,255,0.25)" }}
+            style={{ color: "rgba(0,212,255,0.4)" }}
             onMouseEnter={(e) => { (e.target as HTMLElement).style.color = "#ff2244"; }}
             onMouseLeave={(e) => { (e.target as HTMLElement).style.color = "rgba(0,212,255,0.25)"; }}
           >
@@ -150,10 +150,10 @@ export default function PortfolioChart() {
             </svg>
           </div>
           <div>
-            <p className="font-display text-xs tracking-[0.2em] uppercase" style={{ color: "rgba(0,212,255,0.4)" }}>
+            <p className="font-display text-xs tracking-[0.2em] uppercase" style={{ color: "rgba(0,212,255,0.55)" }}>
               NO HISTORY
             </p>
-            <p className="font-mono text-[10px] mt-1" style={{ color: "rgba(0,212,255,0.2)" }}>
+            <p className="font-mono text-[10px] mt-1" style={{ color: "rgba(0,212,255,0.35)" }}>
               FETCH PRICES TO BEGIN RECORDING
             </p>
           </div>

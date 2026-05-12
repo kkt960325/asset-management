@@ -123,9 +123,9 @@ export default function AssetTable({ loading = false }: { loading?: boolean }) {
   const sorted = [...assets].sort((a, b) => ORDER.indexOf(a.category) - ORDER.indexOf(b.category));
 
   const inputStyle: React.CSSProperties = {
-    background: "rgba(0,8,18,0.9)",
-    border: "1px solid rgba(0,212,255,0.3)",
-    color: "#b8e0f0",
+    background: "rgba(14,28,50,0.9)",
+    border: "1px solid rgba(0,212,255,0.35)",
+    color: "#d8eef8",
     fontFamily: "var(--font-mono)",
     outline: "none",
   };
@@ -134,14 +134,14 @@ export default function AssetTable({ loading = false }: { loading?: boolean }) {
     <div
       className="relative overflow-hidden animate-fade-in-up"
       style={{
-        background: "linear-gradient(135deg, rgba(0,12,24,0.96) 0%, rgba(0,7,16,0.99) 100%)",
-        border: "1px solid rgba(0,212,255,0.12)",
-        boxShadow: "0 0 0 1px rgba(0,212,255,0.04), inset 0 0 80px rgba(0,60,120,0.04), 0 8px 40px rgba(0,0,8,0.9)",
+        background: "linear-gradient(135deg, rgba(14,29,53,0.97) 0%, rgba(10,22,40,0.99) 100%)",
+        border: "1px solid rgba(0,212,255,0.18)",
+        boxShadow: "0 0 0 1px rgba(0,212,255,0.06), inset 0 0 80px rgba(0,80,160,0.06), 0 8px 40px rgba(0,4,16,0.7)",
       }}
     >
       {/* Top glow */}
       <div className="absolute top-0 inset-x-0 h-px z-10"
-        style={{ background: "linear-gradient(90deg, transparent, rgba(0,212,255,0.5), transparent)" }} />
+        style={{ background: "linear-gradient(90deg, transparent, rgba(0,212,255,0.6), transparent)" }} />
       {/* Scan line */}
       <div className="absolute inset-x-0 h-px z-10 pointer-events-none"
         style={{
@@ -151,21 +151,21 @@ export default function AssetTable({ loading = false }: { loading?: boolean }) {
         }}
       />
       {/* Corners */}
-      <div className="absolute top-0 left-0 w-3 h-3 z-10" style={{ borderTop: "1px solid rgba(0,212,255,0.5)", borderLeft: "1px solid rgba(0,212,255,0.5)" }} />
-      <div className="absolute top-0 right-0 w-3 h-3 z-10" style={{ borderTop: "1px solid rgba(0,212,255,0.5)", borderRight: "1px solid rgba(0,212,255,0.5)" }} />
-      <div className="absolute bottom-0 left-0 w-3 h-3 z-10" style={{ borderBottom: "1px solid rgba(0,212,255,0.5)", borderLeft: "1px solid rgba(0,212,255,0.5)" }} />
-      <div className="absolute bottom-0 right-0 w-3 h-3 z-10" style={{ borderBottom: "1px solid rgba(0,212,255,0.5)", borderRight: "1px solid rgba(0,212,255,0.5)" }} />
+      <div className="absolute top-0 left-0 w-3 h-3 z-10" style={{ borderTop: "1px solid rgba(0,212,255,0.6)", borderLeft: "1px solid rgba(0,212,255,0.6)" }} />
+      <div className="absolute top-0 right-0 w-3 h-3 z-10" style={{ borderTop: "1px solid rgba(0,212,255,0.6)", borderRight: "1px solid rgba(0,212,255,0.6)" }} />
+      <div className="absolute bottom-0 left-0 w-3 h-3 z-10" style={{ borderBottom: "1px solid rgba(0,212,255,0.6)", borderLeft: "1px solid rgba(0,212,255,0.6)" }} />
+      <div className="absolute bottom-0 right-0 w-3 h-3 z-10" style={{ borderBottom: "1px solid rgba(0,212,255,0.6)", borderRight: "1px solid rgba(0,212,255,0.6)" }} />
 
       {/* Header */}
       <div className="px-5 py-3.5 flex items-center justify-between"
-        style={{ borderBottom: "1px solid rgba(0,212,255,0.1)" }}>
+        style={{ borderBottom: "1px solid rgba(0,212,255,0.15)" }}>
         <div className="flex items-center gap-2">
           <span className="w-1.5 h-1.5 rounded-full" style={{ background: "#00d4ff", boxShadow: "0 0 6px #00d4ff" }} />
-          <span className="font-display text-[10px] tracking-[0.35em] uppercase" style={{ color: "rgba(0,212,255,0.45)" }}>
+          <span className="font-display text-[10px] tracking-[0.35em] uppercase" style={{ color: "rgba(0,212,255,0.6)" }}>
             ASSET REGISTRY
           </span>
         </div>
-        <span className="font-mono text-[9px]" style={{ color: "rgba(0,212,255,0.2)" }}>
+        <span className="font-mono text-[9px]" style={{ color: "rgba(0,212,255,0.35)" }}>
           {assets.length} RECORDS
         </span>
       </div>
@@ -177,7 +177,7 @@ export default function AssetTable({ loading = false }: { loading?: boolean }) {
             <tr style={{ borderBottom: "1px solid rgba(0,212,255,0.08)" }}>
               {["TICKER", "NAME", "CATEGORY", "QTY", "VALUE", "WEIGHT", "TARGET", "DEVIATION", "REBALANCE", "STATUS", "ACTION"].map((h) => (
                 <th key={h} className="px-4 py-3 text-left whitespace-nowrap">
-                  <span className="font-display text-[9px] tracking-[0.3em] uppercase" style={{ color: "rgba(0,212,255,0.28)" }}>
+                  <span className="font-display text-[9px] tracking-[0.3em] uppercase" style={{ color: "rgba(0,212,255,0.45)" }}>
                     {h}
                   </span>
                 </th>
@@ -225,7 +225,7 @@ export default function AssetTable({ loading = false }: { loading?: boolean }) {
 
                   {/* Name */}
                   <td className="px-4 py-3.5">
-                    <span className="text-xs max-w-[160px] truncate block" style={{ color: "rgba(184,224,240,0.55)" }}>
+                    <span className="text-xs max-w-[160px] truncate block" style={{ color: "rgba(216,238,248,0.7)" }}>
                       {asset.name}
                     </span>
                   </td>
@@ -260,7 +260,7 @@ export default function AssetTable({ loading = false }: { loading?: boolean }) {
                         <button onClick={() => setEditing(null)} style={{ color: "#ff2244" }}><XIcon /></button>
                       </div>
                     ) : (
-                      <span className="font-mono text-xs" style={{ color: "#b8e0f0" }}>
+                      <span className="font-mono text-xs" style={{ color: "#d8eef8" }}>
                         {fmtShares(asset.shares, asset.category)}
                       </span>
                     )}
@@ -284,12 +284,12 @@ export default function AssetTable({ loading = false }: { loading?: boolean }) {
                       ) : (
                         <button onClick={() => startEditManual(asset)} title="클릭하여 금액 수정"
                           className="group flex flex-col items-end gap-0.5 w-full">
-                          <span className="font-mono text-xs group-hover:text-[#00ccaa] transition-colors" style={{ color: "#b8e0f0" }}>
+                          <span className="font-mono text-xs group-hover:text-[#00ffcc] transition-colors" style={{ color: "#e8faff" }}>
                             {asset.currentValue !== undefined && asset.currentValue > 0
                               ? `₩${Math.round(asset.currentValue).toLocaleString("ko-KR")}`
                               : "—"}
                           </span>
-                          <span className="font-mono text-[9px] italic" style={{ color: "rgba(0,204,170,0.35)" }}>
+                          <span className="font-mono text-[9px] italic" style={{ color: "rgba(216,238,248,0.7)" }}>
                             ✎ EDIT
                           </span>
                         </button>
@@ -343,7 +343,7 @@ export default function AssetTable({ loading = false }: { loading?: boolean }) {
                             }}
                           />
                         </div>
-                        <span className="font-mono text-xs" style={{ color: "#b8e0f0" }}>
+                        <span className="font-mono text-xs" style={{ color: "#d8eef8" }}>
                           {(result.currentWeight * 100).toFixed(1)}%
                         </span>
                       </div>
@@ -383,7 +383,7 @@ export default function AssetTable({ loading = false }: { loading?: boolean }) {
                         }}
                       >
                         {asset.targetRatio > 0 ? (
-                          <span className="font-mono text-xs" style={{ color: "#b8e0f0" }}>
+                          <span className="font-mono text-xs" style={{ color: "#d8eef8" }}>
                             {asset.targetRatio.toFixed(1)}%
                           </span>
                         ) : (
@@ -491,10 +491,10 @@ export default function AssetTable({ loading = false }: { loading?: boolean }) {
 
       {assets.length === 0 && (
         <div className="py-16 text-center">
-          <p className="font-display text-xs tracking-[0.3em] uppercase" style={{ color: "rgba(0,212,255,0.25)" }}>
+          <p className="font-display text-xs tracking-[0.3em] uppercase" style={{ color: "rgba(0,212,255,0.4)" }}>
             NO ASSETS IN REGISTRY
           </p>
-          <p className="font-mono text-[10px] mt-2" style={{ color: "rgba(0,212,255,0.15)" }}>
+          <p className="font-mono text-[10px] mt-2" style={{ color: "rgba(0,212,255,0.3)" }}>
             USE ADD ASSET PANEL TO INITIALIZE PORTFOLIO
           </p>
         </div>
@@ -586,21 +586,21 @@ function TaxTooltip({ asset, tax, x, y }: TaxTooltipProps) {
       style={{
         left: Math.min(x, window.innerWidth - 250),
         top: y,
-        background: "rgba(0,8,18,0.98)",
-        border: "1px solid rgba(0,212,255,0.2)",
-        boxShadow: "0 0 30px rgba(0,0,8,0.9), 0 0 0 1px rgba(0,212,255,0.04)",
+        background: "rgba(14,28,50,0.98)",
+        border: "1px solid rgba(0,212,255,0.25)",
+        boxShadow: "0 0 30px rgba(0,4,16,0.7), 0 0 0 1px rgba(0,212,255,0.06)",
       }}
     >
-      <p className="font-display text-[9px] tracking-[0.35em] uppercase mb-3" style={{ color: "rgba(0,212,255,0.4)" }}>
+      <p className="font-display text-[9px] tracking-[0.35em] uppercase mb-3" style={{ color: "rgba(0,212,255,0.55)" }}>
         {asset.ticker} TAX ESTIMATE
       </p>
       <div className="space-y-1.5 mb-3">
         {rows.map((row) => (
           <div key={row.label} className="flex justify-between items-center gap-6">
-            <span className="font-display text-[9px] tracking-[0.1em] uppercase" style={{ color: "rgba(0,212,255,0.4)" }}>
+            <span className="font-display text-[9px] tracking-[0.1em] uppercase" style={{ color: "rgba(0,212,255,0.55)" }}>
               {row.label}
             </span>
-            <span className="font-mono text-[11px]" style={{ color: row.color ?? "#b8e0f0" }}>
+            <span className="font-mono text-[11px]" style={{ color: row.color ?? "#d8eef8" }}>
               {row.value}
             </span>
           </div>

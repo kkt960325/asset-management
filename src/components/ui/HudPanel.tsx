@@ -20,28 +20,28 @@ export function HudPanel({
     <div
       className={`hud-panel ${className}`}
       style={{
-        border: `1px solid rgba(${a},0.12)`,
+        border: `1px solid rgba(${a},0.18)`,
         ...style,
       }}
     >
       {/* Top glow line */}
       <div
         className="absolute top-0 inset-x-0 h-px pointer-events-none z-10"
-        style={{ background: `linear-gradient(90deg, transparent, rgba(${a},0.55), transparent)` }}
+        style={{ background: `linear-gradient(90deg, transparent, rgba(${a},0.65), transparent)` }}
       />
 
       {/* Corner brackets */}
-      <div className="absolute top-0 left-0 w-3 h-3 z-10" style={{ borderTop: `1px solid rgba(${a},0.55)`, borderLeft: `1px solid rgba(${a},0.55)` }} />
-      <div className="absolute top-0 right-0 w-3 h-3 z-10" style={{ borderTop: `1px solid rgba(${a},0.55)`, borderRight: `1px solid rgba(${a},0.55)` }} />
-      <div className="absolute bottom-0 left-0 w-3 h-3 z-10" style={{ borderBottom: `1px solid rgba(${a},0.55)`, borderLeft: `1px solid rgba(${a},0.55)` }} />
-      <div className="absolute bottom-0 right-0 w-3 h-3 z-10" style={{ borderBottom: `1px solid rgba(${a},0.55)`, borderRight: `1px solid rgba(${a},0.55)` }} />
+      <div className="absolute top-0 left-0 w-3 h-3 z-10" style={{ borderTop: `1px solid rgba(${a},0.65)`, borderLeft: `1px solid rgba(${a},0.65)` }} />
+      <div className="absolute top-0 right-0 w-3 h-3 z-10" style={{ borderTop: `1px solid rgba(${a},0.65)`, borderRight: `1px solid rgba(${a},0.65)` }} />
+      <div className="absolute bottom-0 left-0 w-3 h-3 z-10" style={{ borderBottom: `1px solid rgba(${a},0.65)`, borderLeft: `1px solid rgba(${a},0.65)` }} />
+      <div className="absolute bottom-0 right-0 w-3 h-3 z-10" style={{ borderBottom: `1px solid rgba(${a},0.65)`, borderRight: `1px solid rgba(${a},0.65)` }} />
 
       {/* Optional scan line */}
       {scan && (
         <div
           className="absolute inset-x-0 h-px pointer-events-none z-10"
           style={{
-            background: `linear-gradient(90deg, transparent, rgba(${a},0.4), transparent)`,
+            background: `linear-gradient(90deg, transparent, rgba(${a},0.5), transparent)`,
             animation: "hud-scan 5s linear infinite",
             top: "-2px",
           }}

@@ -105,11 +105,11 @@ export default function PortfolioSummary({ onRefresh, loading, error, lastUpdate
       <div className="flex items-center justify-between flex-wrap gap-3">
         <div>
           <p className="font-display text-[10px] tracking-[0.45em] uppercase mb-1"
-            style={{ color: "rgba(0,212,255,0.4)" }}>
+            style={{ color: "rgba(0,212,255,0.55)" }}>
             // FINANCIAL INTELLIGENCE SYSTEM
           </p>
           <h1 className="font-display text-2xl font-bold tracking-[0.08em] uppercase"
-            style={{ color: "#b8e0f0", textShadow: "0 0 20px rgba(0,212,255,0.12)" }}>
+            style={{ color: "#d8eef8", textShadow: "0 0 20px rgba(0,212,255,0.15)" }}>
             PORTFOLIO
           </h1>
         </div>
@@ -118,7 +118,7 @@ export default function PortfolioSummary({ onRefresh, loading, error, lastUpdate
           {/* Currency toggle */}
           <div
             className="flex items-center font-display text-[10px] tracking-[0.2em] overflow-hidden"
-            style={{ border: "1px solid rgba(0,212,255,0.2)" }}
+            style={{ border: "1px solid rgba(0,212,255,0.25)" }}
           >
             {(["KRW", "USD"] as const).map((c) => (
               <button
@@ -126,7 +126,7 @@ export default function PortfolioSummary({ onRefresh, loading, error, lastUpdate
                 onClick={() => setDisplayCurrency(c)}
                 className="px-3 py-2 transition-all duration-200"
                 style={{
-                  color: displayCurrency === c ? "#000508" : "rgba(0,212,255,0.4)",
+                  color: displayCurrency === c ? "#0a1628" : "rgba(0,212,255,0.55)",
                   background: displayCurrency === c ? "#00d4ff" : "transparent",
                 }}
               >
@@ -139,9 +139,9 @@ export default function PortfolioSummary({ onRefresh, loading, error, lastUpdate
           <button
             onClick={handleExport}
             className="group relative px-3 py-2 font-display text-[10px] tracking-[0.2em] uppercase transition-all overflow-hidden"
-            style={{ border: "1px solid rgba(0,212,255,0.2)", color: "rgba(0,212,255,0.5)", background: "rgba(0,212,255,0.02)" }}
-            onMouseEnter={(e) => { (e.currentTarget as HTMLElement).style.background = "rgba(0,212,255,0.07)"; }}
-            onMouseLeave={(e) => { (e.currentTarget as HTMLElement).style.background = "rgba(0,212,255,0.02)"; }}
+            style={{ border: "1px solid rgba(0,212,255,0.25)", color: "rgba(0,212,255,0.65)", background: "rgba(0,212,255,0.04)" }}
+            onMouseEnter={(e) => { (e.currentTarget as HTMLElement).style.background = "rgba(0,212,255,0.1)"; }}
+            onMouseLeave={(e) => { (e.currentTarget as HTMLElement).style.background = "rgba(0,212,255,0.04)"; }}
             title="포트폴리오 JSON 내보내기"
           >
             ↓ EXPORT
@@ -151,9 +151,9 @@ export default function PortfolioSummary({ onRefresh, loading, error, lastUpdate
           <button
             onClick={() => importInputRef.current?.click()}
             className="px-3 py-2 font-display text-[10px] tracking-[0.2em] uppercase transition-all"
-            style={{ border: "1px solid rgba(255,170,0,0.25)", color: "rgba(255,170,0,0.6)", background: "rgba(255,170,0,0.02)" }}
-            onMouseEnter={(e) => { (e.currentTarget as HTMLElement).style.background = "rgba(255,170,0,0.07)"; }}
-            onMouseLeave={(e) => { (e.currentTarget as HTMLElement).style.background = "rgba(255,170,0,0.02)"; }}
+            style={{ border: "1px solid rgba(255,187,51,0.3)", color: "rgba(255,187,51,0.75)", background: "rgba(255,187,51,0.04)" }}
+            onMouseEnter={(e) => { (e.currentTarget as HTMLElement).style.background = "rgba(255,187,51,0.1)"; }}
+            onMouseLeave={(e) => { (e.currentTarget as HTMLElement).style.background = "rgba(255,187,51,0.04)"; }}
             title="포트폴리오 JSON 불러오기"
           >
             ↑ IMPORT
@@ -171,10 +171,10 @@ export default function PortfolioSummary({ onRefresh, loading, error, lastUpdate
             onClick={onRefresh}
             disabled={loading}
             className="group relative flex items-center gap-2 px-4 py-2 font-display text-[11px] tracking-[0.25em] uppercase transition-all disabled:opacity-40 disabled:cursor-not-allowed overflow-hidden"
-            style={{ border: "1px solid rgba(0,212,255,0.2)", color: "rgba(0,212,255,0.6)", background: "rgba(0,212,255,0.02)" }}
+            style={{ border: "1px solid rgba(0,212,255,0.25)", color: "rgba(0,212,255,0.75)", background: "rgba(0,212,255,0.04)" }}
           >
             <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-300"
-              style={{ background: "rgba(0,212,255,0.06)" }} />
+              style={{ background: "rgba(0,212,255,0.08)" }} />
             <svg className={`relative z-10 w-3.5 h-3.5 ${loading ? "animate-spin" : ""}`}
               fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
@@ -198,11 +198,11 @@ export default function PortfolioSummary({ onRefresh, loading, error, lastUpdate
           >
             <div
               className="px-4 py-2.5 text-xs font-mono"
-              style={{ border: "1px solid rgba(255,34,68,0.3)", background: "rgba(255,34,68,0.06)", color: "#ff2244" }}
+              style={{ border: "1px solid rgba(255,51,85,0.35)", background: "rgba(255,51,85,0.08)", color: "#ff3355" }}
             >
               [ERR] {error}
               {cachedAt && (
-                <span style={{ color: "rgba(255,170,0,0.7)", marginLeft: "12px" }}>
+                <span style={{ color: "rgba(255,187,51,0.8)", marginLeft: "12px" }}>
                   ⚠ CACHED — 마지막 시세: {cachedAt}
                 </span>
               )}
@@ -221,11 +221,11 @@ export default function PortfolioSummary({ onRefresh, loading, error, lastUpdate
           >
             <div
               className="flex items-center gap-3 px-4 py-3"
-              style={{ border: "1px solid rgba(255,102,0,0.25)", background: "rgba(255,102,0,0.06)" }}
+              style={{ border: "1px solid rgba(255,119,34,0.3)", background: "rgba(255,119,34,0.08)" }}
             >
               <span className="w-2 h-2 rounded-full flex-shrink-0 animate-pulse-dot"
-                style={{ background: "#ff6600", boxShadow: "0 0 6px rgba(255,102,0,0.8)" }} />
-              <p className="font-display text-xs tracking-wider uppercase" style={{ color: "#ff6600" }}>
+                style={{ background: "#ff7722", boxShadow: "0 0 6px rgba(255,119,34,0.8)" }} />
+              <p className="font-display text-xs tracking-wider uppercase" style={{ color: "#ff7722" }}>
                 [ALERT] {alertCount} ASSET{alertCount !== 1 ? "S" : ""} EXCEED ±{thresholdPct}%p THRESHOLD — REBALANCING REQUIRED
               </p>
             </div>
@@ -295,15 +295,15 @@ export default function PortfolioSummary({ onRefresh, loading, error, lastUpdate
         <div
           className="relative group overflow-hidden h-full p-4 flex flex-col gap-2 transition-all duration-300"
           style={{
-            background: "linear-gradient(135deg, rgba(0,12,24,0.96) 0%, rgba(0,7,16,0.99) 100%)",
-            border: "1px solid rgba(0,212,255,0.12)",
+            background: "linear-gradient(135deg, rgba(14,29,53,0.97) 0%, rgba(10,22,40,0.99) 100%)",
+            border: "1px solid rgba(0,212,255,0.18)",
           }}
         >
-          <div className="absolute top-0 left-0 w-3 h-3" style={{ borderTop: "1px solid rgba(0,212,255,0.5)", borderLeft: "1px solid rgba(0,212,255,0.5)" }} />
-          <div className="absolute top-0 right-0 w-3 h-3" style={{ borderTop: "1px solid rgba(0,212,255,0.5)", borderRight: "1px solid rgba(0,212,255,0.5)" }} />
-          <div className="absolute bottom-0 left-0 w-3 h-3" style={{ borderBottom: "1px solid rgba(0,212,255,0.5)", borderLeft: "1px solid rgba(0,212,255,0.5)" }} />
-          <div className="absolute bottom-0 right-0 w-3 h-3" style={{ borderBottom: "1px solid rgba(0,212,255,0.5)", borderRight: "1px solid rgba(0,212,255,0.5)" }} />
-          <p className="font-display text-[9px] uppercase tracking-[0.3em]" style={{ color: "rgba(0,212,255,0.35)" }}>
+          <div className="absolute top-0 left-0 w-3 h-3" style={{ borderTop: "1px solid rgba(0,212,255,0.6)", borderLeft: "1px solid rgba(0,212,255,0.6)" }} />
+          <div className="absolute top-0 right-0 w-3 h-3" style={{ borderTop: "1px solid rgba(0,212,255,0.6)", borderRight: "1px solid rgba(0,212,255,0.6)" }} />
+          <div className="absolute bottom-0 left-0 w-3 h-3" style={{ borderBottom: "1px solid rgba(0,212,255,0.6)", borderLeft: "1px solid rgba(0,212,255,0.6)" }} />
+          <div className="absolute bottom-0 right-0 w-3 h-3" style={{ borderBottom: "1px solid rgba(0,212,255,0.6)", borderRight: "1px solid rgba(0,212,255,0.6)" }} />
+          <p className="font-display text-[9px] uppercase tracking-[0.3em]" style={{ color: "rgba(0,212,255,0.5)" }}>
             ALERT THRESHOLD
           </p>
           <div className="flex items-center gap-2 mt-auto">
@@ -319,7 +319,7 @@ export default function PortfolioSummary({ onRefresh, loading, error, lastUpdate
               {thresholdPct}%p
             </span>
           </div>
-          <p className="font-mono text-[9px]" style={{ color: "rgba(0,212,255,0.2)" }}>
+          <p className="font-mono text-[9px]" style={{ color: "rgba(0,212,255,0.3)" }}>
             DEVIATION TRIGGER
           </p>
         </div>
@@ -328,34 +328,34 @@ export default function PortfolioSummary({ onRefresh, loading, error, lastUpdate
       {/* System status bar */}
       <div
         className="flex flex-wrap items-center justify-between gap-3 px-4 py-2.5"
-        style={{ border: "1px solid rgba(0,212,255,0.08)", background: "rgba(0,212,255,0.02)" }}
+        style={{ border: "1px solid rgba(0,212,255,0.12)", background: "rgba(0,212,255,0.04)" }}
       >
         <div className="flex flex-wrap items-center gap-5 font-mono text-[10px]">
-          <span style={{ color: "rgba(0,212,255,0.35)" }}>
+          <span style={{ color: "rgba(0,212,255,0.5)" }}>
             ASSETS <span style={{ color: "#00d4ff" }}>{assets.length}</span>
           </span>
-          <span style={{ color: "rgba(0,212,255,0.15)" }}>|</span>
-          <span style={{ color: "rgba(0,212,255,0.35)" }}>
-            FX RATE <span style={{ color: "#b8e0f0" }}>₩{Math.round(rate).toLocaleString("ko-KR")}</span>
+          <span style={{ color: "rgba(0,212,255,0.22)" }}>|</span>
+          <span style={{ color: "rgba(0,212,255,0.5)" }}>
+            FX RATE <span style={{ color: "#d8eef8" }}>₩{Math.round(rate).toLocaleString("ko-KR")}</span>
             {" "}/ $1
-            {exchangeRate > 0 && <span style={{ color: "rgba(0,212,255,0.5)", marginLeft: "6px" }}>LIVE</span>}
+            {exchangeRate > 0 && <span style={{ color: "rgba(0,212,255,0.65)", marginLeft: "6px" }}>LIVE</span>}
           </span>
-          <span style={{ color: "rgba(0,212,255,0.15)" }}>|</span>
-          <span style={{ color: "rgba(0,212,255,0.35)" }}>
+          <span style={{ color: "rgba(0,212,255,0.22)" }}>|</span>
+          <span style={{ color: "rgba(0,212,255,0.5)" }}>
             ALLOCATION{" "}
             <span style={{
               color: targetPctStatus === "ok" ? "#00d4ff"
-                : targetPctStatus === "over" ? "#ff2244"
-                : targetPctStatus === "none" ? "rgba(0,212,255,0.3)"
-                : "#ffaa00",
+                : targetPctStatus === "over" ? "#ff3355"
+                : targetPctStatus === "none" ? "rgba(0,212,255,0.4)"
+                : "#ffbb33",
               textShadow: targetPctStatus === "ok" ? "0 0 8px rgba(0,212,255,0.6)" : undefined,
             }}>
               {totalTargetPct.toFixed(1)}%
             </span>
-            {targetPctStatus === "ok" && <span style={{ color: "rgba(0,212,255,0.5)", marginLeft: "6px" }}>✓</span>}
+            {targetPctStatus === "ok" && <span style={{ color: "rgba(0,212,255,0.6)", marginLeft: "6px" }}>✓</span>}
           </span>
         </div>
-        <span className="font-mono text-[9px]" style={{ color: error ? "rgba(255,170,0,0.5)" : "rgba(0,212,255,0.2)" }}>
+        <span className="font-mono text-[9px]" style={{ color: error ? "rgba(255,187,51,0.65)" : "rgba(0,212,255,0.35)" }}>
           {error && cachedAt
             ? `⚠ CACHED — ${cachedAt}`
             : lastUpdated
@@ -401,39 +401,39 @@ function StatCard({
   rawText?: string; // overrides AnimatedNumber when set (e.g. "SCANNING…")
 }) {
   const map = {
-    cyan:   { color: "#00d4ff", rgb: "0,212,255",   glow: "rgba(0,212,255,0.7)",   border: "rgba(0,212,255,0.12)"   },
-    orange: { color: "#ff6600", rgb: "255,102,0",   glow: "rgba(255,102,0,0.7)",   border: "rgba(255,102,0,0.12)"   },
-    amber:  { color: "#ffaa00", rgb: "255,170,0",   glow: "rgba(255,170,0,0.7)",   border: "rgba(255,170,0,0.12)"   },
-    red:    { color: "#ff2244", rgb: "255,34,68",   glow: "rgba(255,34,68,0.7)",   border: "rgba(255,34,68,0.12)"   },
+    cyan:   { color: "#00d4ff", rgb: "0,212,255",   glow: "rgba(0,212,255,0.7)",   border: "rgba(0,212,255,0.18)"   },
+    orange: { color: "#ff7722", rgb: "255,119,34",   glow: "rgba(255,119,34,0.7)",   border: "rgba(255,119,34,0.18)"   },
+    amber:  { color: "#ffbb33", rgb: "255,187,51",   glow: "rgba(255,187,51,0.7)",   border: "rgba(255,187,51,0.18)"   },
+    red:    { color: "#ff3355", rgb: "255,51,85",   glow: "rgba(255,51,85,0.7)",   border: "rgba(255,51,85,0.18)"   },
   }[accent];
 
   return (
     <div
       className="group relative overflow-hidden h-full p-4 flex flex-col gap-1.5 transition-all duration-300 cursor-default"
       style={{
-        background: "linear-gradient(135deg, rgba(0,12,24,0.96) 0%, rgba(0,7,16,0.99) 100%)",
+        background: "linear-gradient(135deg, rgba(14,29,53,0.97) 0%, rgba(10,22,40,0.99) 100%)",
         border: `1px solid ${map.border}`,
-        boxShadow: "0 4px 24px rgba(0,0,8,0.8)",
+        boxShadow: "0 4px 24px rgba(0,4,16,0.6)",
       }}
     >
       {/* Corners */}
-      <div className="absolute top-0 left-0 w-3 h-3" style={{ borderTop: `1px solid rgba(${map.rgb},0.5)`, borderLeft: `1px solid rgba(${map.rgb},0.5)` }} />
-      <div className="absolute top-0 right-0 w-3 h-3" style={{ borderTop: `1px solid rgba(${map.rgb},0.5)`, borderRight: `1px solid rgba(${map.rgb},0.5)` }} />
-      <div className="absolute bottom-0 left-0 w-3 h-3" style={{ borderBottom: `1px solid rgba(${map.rgb},0.5)`, borderLeft: `1px solid rgba(${map.rgb},0.5)` }} />
-      <div className="absolute bottom-0 right-0 w-3 h-3" style={{ borderBottom: `1px solid rgba(${map.rgb},0.5)`, borderRight: `1px solid rgba(${map.rgb},0.5)` }} />
+      <div className="absolute top-0 left-0 w-3 h-3" style={{ borderTop: `1px solid rgba(${map.rgb},0.6)`, borderLeft: `1px solid rgba(${map.rgb},0.6)` }} />
+      <div className="absolute top-0 right-0 w-3 h-3" style={{ borderTop: `1px solid rgba(${map.rgb},0.6)`, borderRight: `1px solid rgba(${map.rgb},0.6)` }} />
+      <div className="absolute bottom-0 left-0 w-3 h-3" style={{ borderBottom: `1px solid rgba(${map.rgb},0.6)`, borderLeft: `1px solid rgba(${map.rgb},0.6)` }} />
+      <div className="absolute bottom-0 right-0 w-3 h-3" style={{ borderBottom: `1px solid rgba(${map.rgb},0.6)`, borderRight: `1px solid rgba(${map.rgb},0.6)` }} />
 
       {/* Hover inner glow */}
       <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none"
-        style={{ boxShadow: `inset 0 0 30px rgba(${map.rgb},0.06)` }} />
+        style={{ boxShadow: `inset 0 0 30px rgba(${map.rgb},0.08)` }} />
 
-      <p className="font-display text-[9px] uppercase tracking-[0.3em]" style={{ color: `rgba(${map.rgb},0.35)` }}>
+      <p className="font-display text-[9px] uppercase tracking-[0.3em]" style={{ color: `rgba(${map.rgb},0.5)` }}>
         {label}
       </p>
 
       <div className="flex items-center gap-2 mt-1">
         {dot && (
           <span className="w-2 h-2 rounded-full flex-shrink-0 animate-pulse-dot"
-            style={{ background: "#ff6600", boxShadow: "0 0 6px rgba(255,102,0,0.8)" }} />
+            style={{ background: "#ff7722", boxShadow: "0 0 6px rgba(255,119,34,0.8)" }} />
         )}
         {rawText ? (
           <span className="font-mono text-xl font-bold leading-none animate-data-flicker"
@@ -450,10 +450,10 @@ function StatCard({
         )}
       </div>
 
-      <p className="font-sans text-[11px]" style={{ color: `rgba(${map.rgb},0.45)` }}>{sub}</p>
+      <p className="font-sans text-[11px]" style={{ color: `rgba(${map.rgb},0.55)` }}>{sub}</p>
 
       {detail && (
-        <p className="font-mono text-[9px] leading-relaxed mt-0.5 break-all" style={{ color: "rgba(0,212,255,0.18)" }}>
+        <p className="font-mono text-[9px] leading-relaxed mt-0.5 break-all" style={{ color: "rgba(0,212,255,0.28)" }}>
           {detail}
         </p>
       )}

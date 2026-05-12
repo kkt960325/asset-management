@@ -14,21 +14,21 @@ const MODULES = [
     label: "REBALANCE ALERT",
     sub: "리밸런싱 알림",
     desc: "목표 비중 괴리 발생 시 즉시 알림. 매수·매도 금액을 자동으로 산출.",
-    accent: "255,102,0",
+    accent: "255,119,34",
   },
   {
     id: "03",
     label: "TAX SIMULATION",
     sub: "세금 간이 추정",
     desc: "카테고리별 양도세·배당세 자동 계산. KRX 금현물 비과세 혜택 포함.",
-    accent: "255,170,0",
+    accent: "255,187,51",
   },
   {
     id: "04",
     label: "LOCAL STORAGE",
     sub: "로컬 전용 저장",
     desc: "서버 없음. 로그인 없음. 모든 데이터는 브라우저에만 저장됩니다.",
-    accent: "0,255,136",
+    accent: "34,255,153",
   },
 ];
 
@@ -41,7 +41,7 @@ export default function Home() {
         className="absolute inset-0 pointer-events-none"
         style={{
           background:
-            "radial-gradient(ellipse 80% 55% at 50% -5%, rgba(0,80,180,0.08) 0%, transparent 70%)",
+            "radial-gradient(ellipse 80% 55% at 50% -5%, rgba(0,100,220,0.12) 0%, transparent 70%)",
         }}
       />
 
@@ -52,21 +52,21 @@ export default function Home() {
         <div className="flex items-center gap-4">
           <div
             className="inline-flex items-center gap-2 px-3 py-1.5"
-            style={{ border: "1px solid rgba(0,212,255,0.22)", background: "rgba(0,212,255,0.04)" }}
+            style={{ border: "1px solid rgba(0,212,255,0.3)", background: "rgba(0,212,255,0.06)" }}
           >
             <span
               className="w-1.5 h-1.5 rounded-full bg-[#00d4ff] animate-pulse-dot"
               style={{ boxShadow: "0 0 6px #00d4ff" }}
             />
-            <span className="font-display text-[9px] tracking-[0.45em] uppercase" style={{ color: "rgba(0,212,255,0.7)" }}>
+            <span className="font-display text-[9px] tracking-[0.45em] uppercase" style={{ color: "rgba(0,212,255,0.8)" }}>
               SYSTEM ONLINE
             </span>
           </div>
           <div
             className="h-px flex-1 max-w-xs"
-            style={{ background: "linear-gradient(90deg, rgba(0,212,255,0.2), transparent)" }}
+            style={{ background: "linear-gradient(90deg, rgba(0,212,255,0.3), transparent)" }}
           />
-          <span className="font-mono text-[9px] tracking-widest" style={{ color: "rgba(0,212,255,0.2)" }}>
+          <span className="font-mono text-[9px] tracking-widest" style={{ color: "rgba(0,212,255,0.35)" }}>
             J.A.R.V.I.S — FINANCIAL MODULE v3.7
           </span>
         </div>
@@ -79,18 +79,18 @@ export default function Home() {
             letterSpacing: "-0.02em",
           }}
         >
-          <span style={{ color: "#00d4ff", textShadow: "0 0 40px rgba(0,212,255,0.35), 0 0 80px rgba(0,212,255,0.12)" }}>
+          <span style={{ color: "#00d4ff", textShadow: "0 0 40px rgba(0,212,255,0.4), 0 0 80px rgba(0,212,255,0.15)" }}>
             SEUNGHAN
           </span>
-          <span style={{ color: "#ff6600", textShadow: "0 0 40px rgba(255,102,0,0.35), 0 0 80px rgba(255,102,0,0.12)" }}>
+          <span style={{ color: "#ff7722", textShadow: "0 0 40px rgba(255,119,34,0.4), 0 0 80px rgba(255,119,34,0.15)" }}>
             IST
           </span>
         </h1>
 
         {/* Separator */}
         <div className="flex items-center gap-4">
-          <div className="h-px w-12" style={{ background: "rgba(0,212,255,0.4)" }} />
-          <p className="font-mono text-[11px] tracking-widest uppercase" style={{ color: "rgba(0,212,255,0.3)" }}>
+          <div className="h-px w-12" style={{ background: "rgba(0,212,255,0.5)" }} />
+          <p className="font-mono text-[11px] tracking-widest uppercase" style={{ color: "rgba(0,212,255,0.45)" }}>
             주식 · 코인 · 금 · 부동산 · 현금 — ALL ASSETS ONE INTERFACE
           </p>
         </div>
@@ -101,15 +101,15 @@ export default function Home() {
             href="/portfolio"
             className="group relative inline-flex items-center gap-3 px-8 py-4 font-display text-sm font-bold tracking-[0.25em] uppercase overflow-hidden"
             style={{
-              border: "1px solid rgba(0,212,255,0.45)",
+              border: "1px solid rgba(0,212,255,0.5)",
               color: "#00d4ff",
-              background: "rgba(0,212,255,0.03)",
-              boxShadow: "0 0 24px rgba(0,212,255,0.08), inset 0 0 20px rgba(0,212,255,0.03)",
+              background: "rgba(0,212,255,0.05)",
+              boxShadow: "0 0 24px rgba(0,212,255,0.1), inset 0 0 20px rgba(0,212,255,0.04)",
             }}
           >
             <div
               className="absolute inset-0 translate-x-[-101%] group-hover:translate-x-0 transition-transform duration-500 ease-out"
-              style={{ background: "rgba(0,212,255,0.08)" }}
+              style={{ background: "rgba(0,212,255,0.1)" }}
             />
             <span className="relative z-10">INITIALIZE PORTFOLIO</span>
             <svg
@@ -122,7 +122,7 @@ export default function Home() {
                 d="M17 8l4 4m0 0l-4 4m4-4H3" />
             </svg>
           </Link>
-          <span className="font-mono text-[9px] tracking-[0.35em] uppercase" style={{ color: "rgba(0,212,255,0.15)" }}>
+          <span className="font-mono text-[9px] tracking-[0.35em] uppercase" style={{ color: "rgba(0,212,255,0.25)" }}>
             // NO LOGIN REQUIRED
           </span>
         </div>
@@ -133,13 +133,13 @@ export default function Home() {
         <div className="flex items-center gap-4 mb-5">
           <span
             className="font-display text-[9px] tracking-[0.45em] uppercase"
-            style={{ color: "rgba(0,212,255,0.35)" }}
+            style={{ color: "rgba(0,212,255,0.5)" }}
           >
             SYSTEM MODULES
           </span>
           <div
             className="h-px flex-1"
-            style={{ background: "linear-gradient(90deg, rgba(0,212,255,0.15), transparent)" }}
+            style={{ background: "linear-gradient(90deg, rgba(0,212,255,0.25), transparent)" }}
           />
         </div>
 
@@ -149,29 +149,29 @@ export default function Home() {
               <div
                 className="relative h-full p-5 group cursor-default overflow-hidden"
                 style={{
-                  background: "rgba(0,8,18,0.92)",
-                  border: `1px solid rgba(${mod.accent},0.18)`,
+                  background: "rgba(14,28,50,0.94)",
+                  border: `1px solid rgba(${mod.accent},0.25)`,
                 }}
               >
                 {/* Corner brackets */}
                 <div className="absolute top-0 left-0 w-3 h-3 z-10"
-                  style={{ borderTop: `1px solid rgba(${mod.accent},0.6)`, borderLeft: `1px solid rgba(${mod.accent},0.6)` }} />
+                  style={{ borderTop: `1px solid rgba(${mod.accent},0.7)`, borderLeft: `1px solid rgba(${mod.accent},0.7)` }} />
                 <div className="absolute top-0 right-0 w-3 h-3 z-10"
-                  style={{ borderTop: `1px solid rgba(${mod.accent},0.6)`, borderRight: `1px solid rgba(${mod.accent},0.6)` }} />
+                  style={{ borderTop: `1px solid rgba(${mod.accent},0.7)`, borderRight: `1px solid rgba(${mod.accent},0.7)` }} />
                 <div className="absolute bottom-0 left-0 w-3 h-3 z-10"
-                  style={{ borderBottom: `1px solid rgba(${mod.accent},0.6)`, borderLeft: `1px solid rgba(${mod.accent},0.6)` }} />
+                  style={{ borderBottom: `1px solid rgba(${mod.accent},0.7)`, borderLeft: `1px solid rgba(${mod.accent},0.7)` }} />
                 <div className="absolute bottom-0 right-0 w-3 h-3 z-10"
-                  style={{ borderBottom: `1px solid rgba(${mod.accent},0.6)`, borderRight: `1px solid rgba(${mod.accent},0.6)` }} />
+                  style={{ borderBottom: `1px solid rgba(${mod.accent},0.7)`, borderRight: `1px solid rgba(${mod.accent},0.7)` }} />
 
                 {/* Hover inner glow */}
                 <div
                   className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none"
-                  style={{ boxShadow: `inset 0 0 40px rgba(${mod.accent},0.06)` }}
+                  style={{ boxShadow: `inset 0 0 40px rgba(${mod.accent},0.08)` }}
                 />
 
                 <div className="flex flex-col gap-4">
                   <div className="flex items-center justify-between">
-                    <span className="font-mono text-[10px]" style={{ color: `rgba(${mod.accent},0.45)` }}>
+                    <span className="font-mono text-[10px]" style={{ color: `rgba(${mod.accent},0.6)` }}>
                       [{mod.id}]
                     </span>
                     <span
@@ -190,14 +190,14 @@ export default function Home() {
                     >
                       {mod.label}
                     </p>
-                    <p className="font-sans text-[11px] mt-0.5" style={{ color: `rgba(${mod.accent},0.5)` }}>
+                    <p className="font-sans text-[11px] mt-0.5" style={{ color: `rgba(${mod.accent},0.65)` }}>
                       {mod.sub}
                     </p>
                   </div>
 
                   <p
                     className="text-[11px] leading-relaxed font-sans"
-                    style={{ color: "rgba(184,224,240,0.45)" }}
+                    style={{ color: "rgba(216,238,248,0.6)" }}
                   >
                     {mod.desc}
                   </p>
