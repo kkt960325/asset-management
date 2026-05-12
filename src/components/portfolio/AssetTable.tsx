@@ -90,9 +90,13 @@ export default function AssetTable({ loading = false }: { loading?: boolean }) {
     const tvSymbol = toTradingViewSymbol(asset.ticker, asset.category);
     if (!tvSymbol) return;
     if (chartTimerRef.current) clearTimeout(chartTimerRef.current);
+    // ⚠ React synthetic event는 핸들러 종료 후 null이 되므로
+    //   반드시 setTimeout 바깥에서 즉시 캡처해야 함
+    const el = e.currentTarget as HTMLElement;
+    const rect = el.getBoundingClientRect();
+    const anchorRect = { left: rect.left, top: rect.top, bottom: rect.bottom, right: rect.right };
     chartTimerRef.current = setTimeout(() => {
-      const rect = (e.currentTarget as HTMLElement).getBoundingClientRect();
-      setChartPopup({ asset, rect: { left: rect.left, top: rect.top, bottom: rect.bottom, right: rect.right } });
+      setChartPopup({ asset, rect: anchorRect });
     }, 350);
   }, []);
 
