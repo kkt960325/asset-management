@@ -1,12 +1,13 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useRef, useCallback } from "react";
 import { useAssetStore, selectRebalanceSummary } from "@/lib/store";
 import type { Asset, AssetCategory } from "@/lib/types";
 import { MANUAL_CATEGORIES } from "@/lib/types";
 import type { AssetRebalanceResult } from "@/lib/rebalancer";
 import { estimateSellTax, fmtTaxAmount, TAX_NOTE } from "@/lib/tax";
 import { AssetIcon } from "@/components/ui/AssetIcon";
+import TradingViewPopup, { toTradingViewSymbol } from "@/components/ui/TradingViewPopup";
 
 // ── Category styles ───────────────────────────────────────────────────────────
 
@@ -77,6 +78,33 @@ export default function AssetTable({ loading = false }: { loading?: boolean }) {
   const [editingManual, setEditingManual] = useState<{ id: string; value: string } | null>(null);
   const [deletingId, setDeletingId] = useState<string | null>(null);
   const [tooltip, setTooltip] = useState<{ id: string; x: number; y: number } | null>(null);
+
+  // ── TradingView chart popup ───────────────────────────────────────────
+  const [chartPopup, setChartPopup] = useState<{
+    asset: Asset;
+    rect: { left: number; top: number; bottom: number; right: number };
+  } | null>(null);
+  const chartTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  const handleTickerMouseEnter = useCallback((asset: Asset, e: React.MouseEvent) => {
+    const tvSymbol = toTradingViewSymbol(asset.ticker, asset.category);
+    if (!tvSymbol) return;
+    if (chartTimerRef.current) clearTimeout(chartTimerRef.current);
+    chartTimerRef.current = setTimeout(() => {
+      const rect = (e.currentTarget as HTMLElement).getBoundingClientRect();
+      setChartPopup({ asset, rect: { left: rect.left, top: rect.top, bottom: rect.bottom, right: rect.right } });
+    }, 350);
+  }, []);
+
+  const handleTickerMouseLeave = useCallback(() => {
+    if (chartTimerRef.current) clearTimeout(chartTimerRef.current);
+    // Don't close immediately - let the popup's onMouseLeave handle it
+  }, []);
+
+  const closeChartPopup = useCallback(() => {
+    if (chartTimerRef.current) clearTimeout(chartTimerRef.current);
+    setChartPopup(null);
+  }, []);
 
   function startEdit(asset: Asset) {
     setEditing({ id: asset.id, value: String(asset.shares) });
@@ -213,13 +241,30 @@ export default function AssetTable({ loading = false }: { loading?: boolean }) {
                     background: isDeleting ? "rgba(255,34,68,0.04)" : undefined,
                   }}
                 >
-                  {/* Ticker */}
+                  {/* Ticker — hover to show TradingView chart */}
                   <td className="px-4 py-3.5 whitespace-nowrap">
-                    <div className="flex items-center gap-2">
+                    <div
+                      className="flex items-center gap-2 cursor-pointer group/ticker"
+                      onMouseEnter={(e) => handleTickerMouseEnter(asset, e)}
+                      onMouseLeave={handleTickerMouseLeave}
+                    >
                       <AssetIcon ticker={asset.ticker} category={asset.category} size={24} />
-                      <span className="font-mono font-bold text-sm" style={{ color: cat.color }}>
+                      <span className="font-mono font-bold text-sm transition-all duration-150" style={{ color: cat.color }}>
                         {asset.ticker}
                       </span>
+                      {/* Chart indicator icon */}
+                      {toTradingViewSymbol(asset.ticker, asset.category) && (
+                        <svg
+                          className="w-3 h-3 opacity-0 group-hover/ticker:opacity-60 transition-opacity duration-200 flex-shrink-0"
+                          fill="none"
+                          stroke="currentColor"
+                          viewBox="0 0 24 24"
+                          style={{ color: cat.color }}
+                        >
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
+                            d="M7 12l3-3 3 3 4-4M8 21l4-4 4 4M3 4h18M4 4h16v12a1 1 0 01-1 1H5a1 1 0 01-1-1V4z" />
+                        </svg>
+                      )}
                     </div>
                   </td>
 
@@ -510,6 +555,17 @@ export default function AssetTable({ loading = false }: { loading?: boolean }) {
         const tax = estimateSellTax(sellValue, asset.category, asset.currency ?? "KRW");
         return <TaxTooltip asset={asset} tax={tax} x={tooltip.x} y={tooltip.y} onClose={() => setTooltip(null)} />;
       })()}
+
+      {/* TradingView chart popup */}
+      {chartPopup && (
+        <TradingViewPopup
+          ticker={chartPopup.asset.ticker}
+          name={chartPopup.asset.name}
+          category={chartPopup.asset.category}
+          anchorRect={chartPopup.rect}
+          onClose={closeChartPopup}
+        />
+      )}
     </div>
   );
 }
