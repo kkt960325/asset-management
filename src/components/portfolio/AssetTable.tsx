@@ -98,7 +98,7 @@ export default function AssetTable({ loading = false }: { loading?: boolean }) {
 
   const handleTickerMouseLeave = useCallback(() => {
     if (chartTimerRef.current) clearTimeout(chartTimerRef.current);
-    // Don't close immediately - let the popup's onMouseLeave handle it
+    setChartPopup(null);
   }, []);
 
   const closeChartPopup = useCallback(() => {
@@ -563,7 +563,6 @@ export default function AssetTable({ loading = false }: { loading?: boolean }) {
           name={chartPopup.asset.name}
           category={chartPopup.asset.category}
           anchorRect={chartPopup.rect}
-          onClose={closeChartPopup}
         />
       )}
     </div>
