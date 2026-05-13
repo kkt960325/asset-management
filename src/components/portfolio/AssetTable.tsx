@@ -7,7 +7,7 @@ import { MANUAL_CATEGORIES } from "@/lib/types";
 import type { AssetRebalanceResult } from "@/lib/rebalancer";
 import { estimateSellTax, fmtTaxAmount, TAX_NOTE } from "@/lib/tax";
 import { AssetIcon } from "@/components/ui/AssetIcon";
-import TradingViewPopup, { toTradingViewSymbol } from "@/components/ui/TradingViewPopup";
+import TradingViewPopup, { hasChartSupport } from "@/components/ui/TradingViewPopup";
 
 // ── Category styles ───────────────────────────────────────────────────────────
 
@@ -87,8 +87,7 @@ export default function AssetTable({ loading = false }: { loading?: boolean }) {
   const chartTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const handleTickerMouseEnter = useCallback((asset: Asset, e: React.MouseEvent) => {
-    const tvSymbol = toTradingViewSymbol(asset.ticker, asset.category);
-    if (!tvSymbol) return;
+    if (!hasChartSupport(asset.ticker, asset.category)) return;
     if (chartTimerRef.current) clearTimeout(chartTimerRef.current);
     // ⚠ React synthetic event는 핸들러 종료 후 null이 되므로
     //   반드시 setTimeout 바깥에서 즉시 캡처해야 함
@@ -257,7 +256,7 @@ export default function AssetTable({ loading = false }: { loading?: boolean }) {
                         {asset.ticker}
                       </span>
                       {/* Chart indicator icon */}
-                      {toTradingViewSymbol(asset.ticker, asset.category) && (
+                      {hasChartSupport(asset.ticker, asset.category) && (
                         <svg
                           className="w-3 h-3 opacity-0 group-hover/ticker:opacity-60 transition-opacity duration-200 flex-shrink-0"
                           fill="none"
