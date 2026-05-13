@@ -50,9 +50,10 @@ export function toTradingViewSymbol(
   }
 }
 
-/** 한국 자산인지 확인 — 카테고리뿐 아니라 KRX 6자리 코드도 감지 */
+/** 한국 자산인지 확인 — 네이버 증권 차트를 사용할 수 있는 자산만 해당 */
 export function isKoreanAsset(category: AssetCategory, ticker?: string): boolean {
-  if (category === "한국주식" || category === "국내ETF" || category === "KRX금현물") return true;
+  // KRX금현물은 네이버에 종목코드가 없으므로 제외 (Yahoo GC=F 사용)
+  if (category === "한국주식" || category === "국내ETF") return true;
   // 카테고리가 채권·해외ETF 등이어도 티커가 KRX 코드면 국내 자산
   if (ticker && isKrxCode(ticker)) return true;
   return false;
@@ -67,6 +68,8 @@ export function toYahooTicker(ticker: string, category: AssetCategory): string |
       const base = ticker.replace(/-USD$/i, "");
       return `${base}-USD`;
     }
+    case "KRX금현물":
+      return "GC=F"; // 금 선물 (USD/oz) → Yahoo 차트
     case "금/원자재": {
       const t = ticker.toUpperCase();
       if (t.includes("GC") || t.includes("GOLD") || t === "금 99.99_1KG") return "GC=F";
