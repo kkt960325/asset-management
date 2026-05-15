@@ -180,7 +180,7 @@ const TradingViewPopup = memo(function TradingViewPopup({
       interval: "D",
       timezone: "Asia/Seoul",
       theme: "dark",
-      style: "2",
+      style: "1",
       locale: "ko",
       backgroundColor: "rgba(10, 22, 40, 1)",
       gridColor: "rgba(0, 212, 255, 0.06)",

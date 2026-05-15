@@ -10,6 +10,7 @@ import PortfolioChart from "@/components/portfolio/PortfolioChart";
 import PortfolioPieChart from "@/components/portfolio/PortfolioPieChart";
 import AssetTable from "@/components/portfolio/AssetTable";
 import AddAssetForm from "@/components/portfolio/AddAssetForm";
+import GeminiAdvisor from "@/components/portfolio/GeminiAdvisor";
 import SyncButton from "@/components/portfolio/SyncButton";
 
 export default function PortfolioPage() {
@@ -140,6 +141,7 @@ export default function PortfolioPage() {
         <PortfolioChart />
       </div>
       <AssetTable loading={loading} />
+      <GeminiAdvisor />
       <AddAssetForm />
 
       {/* Fixed sync button — hardSync clears stale localStorage prices before re-fetching */}
