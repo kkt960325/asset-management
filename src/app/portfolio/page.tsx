@@ -4,6 +4,7 @@ import { useEffect, useRef, useCallback } from "react";
 import { useAssetPrices, getLastDebugInfo } from "@/lib/api";
 import { useAssetStore } from "@/lib/store";
 import { MANUAL_CATEGORIES } from "@/lib/types";
+import MarketIndexCharts from "@/components/portfolio/MarketIndexCharts";
 import PortfolioSummary from "@/components/portfolio/PortfolioSummary";
 import PortfolioChart from "@/components/portfolio/PortfolioChart";
 import PortfolioPieChart from "@/components/portfolio/PortfolioPieChart";
@@ -127,6 +128,7 @@ export default function PortfolioPage() {
 
   return (
     <div className="space-y-6">
+      <MarketIndexCharts />
       <PortfolioSummary
         onRefresh={hardSync}
         loading={loading}
