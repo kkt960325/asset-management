@@ -140,8 +140,8 @@ export default function PortfolioPage() {
         <PortfolioPieChart />
         <PortfolioChart />
       </div>
-      <AssetTable loading={loading} />
       <GeminiAdvisor />
+      <AssetTable loading={loading} />
       <AddAssetForm />
 
       {/* Fixed sync button — hardSync clears stale localStorage prices before re-fetching */}
