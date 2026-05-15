@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { GoogleGenerativeAI } from "@google/generative-ai";
 
 export const runtime = "nodejs";
-export const maxDuration = 30;
+export const maxDuration = 60;
 
 /* ── 타입 ──────────────────────────────────────────────────────────── */
 type Message = { role: "user" | "model"; text: string };
@@ -59,32 +59,39 @@ export async function POST(req: NextRequest) {
     const model = genAI.getGenerativeModel({
       model: "gemini-2.5-flash",
       systemInstruction: SYSTEM_PROMPT,
+      generationConfig: {
+        // Disable thinking output to avoid budget/token issues
+        // @ts-expect-error - thinkingConfig is available in newer API but not yet in types
+        thinkingConfig: { thinkingBudget: 0 },
+      },
     });
 
-    // Build chat history
-    const chatHistory = [];
+    // Combine portfolio context + full conversation into a single prompt
+    // This avoids the multi-turn history issues with thinking models
+    const contextBlock = `[현재 포트폴리오 데이터]\n${portfolio}\n\n---\n`;
 
-    // First inject portfolio context as the opening exchange
-    chatHistory.push({
-      role: "user" as const,
-      parts: [{ text: `[포트폴리오 데이터]\n${portfolio}\n\n위 포트폴리오를 분석하여 리밸런싱 방향을 제안해 주세요.` }],
-    });
-
-    // Add previous model/user messages (skip the first user message since we used it above)
-    for (let i = 0; i < messages.length - 1; i++) {
-      const m = messages[i];
-      chatHistory.push({
-        role: m.role === "user" ? ("user" as const) : ("model" as const),
-        parts: [{ text: m.text }],
-      });
+    let prompt: string;
+    if (messages.length === 1) {
+      // First message — include context directly
+      prompt = contextBlock + messages[0].text;
+    } else {
+      // Multi-turn: build conversation text
+      const convoLines = messages.map(
+        (m) => `${m.role === "user" ? "사용자" : "어드바이저"}: ${m.text}`
+      );
+      // Pop the last user message — that's what we send
+      const lastLine = convoLines.pop();
+      prompt =
+        contextBlock +
+        "[이전 대화]\n" +
+        convoLines.join("\n\n") +
+        "\n\n---\n" +
+        (lastLine?.replace(/^사용자: /, "") ?? "");
     }
 
-    const chat = model.startChat({ history: chatHistory });
-
-    // Send the latest user message
-    const lastMsg = messages[messages.length - 1];
-    const result = await chat.sendMessage(lastMsg.text);
-    const responseText = result.response.text();
+    const result = await model.generateContent(prompt);
+    const response = result.response;
+    const responseText = response.text();
 
     return NextResponse.json({ response: responseText });
   } catch (err) {
